@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -13,13 +13,6 @@ import { StatusBar } from "@/components/playground/status-bar";
 
 export default function Page() {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("horizontal");
-  const [cursorLine, setCursorLine] = useState(1);
-  const [cursorColumn, setCursorColumn] = useState(1);
-
-  const handleCursorChange = useCallback((line: number, column: number) => {
-    setCursorLine(line);
-    setCursorColumn(column);
-  }, []);
 
   return (
     <div className="flex h-dvh flex-col bg-background">
@@ -34,7 +27,7 @@ export default function Page() {
             className="h-full"
           >
             <ResizablePanel defaultSize={50} minSize={25}>
-              <EditorPanel onCursorChange={handleCursorChange} />
+              <EditorPanel />
             </ResizablePanel>
             <ResizableHandle />
             <ResizablePanel defaultSize={50} minSize={25}>
@@ -44,9 +37,7 @@ export default function Page() {
         )}
       </div>
 
-      {layoutMode !== "preview-only" && (
-        <StatusBar cursorLine={cursorLine} cursorColumn={cursorColumn} />
-      )}
+      <StatusBar />
     </div>
   );
 }

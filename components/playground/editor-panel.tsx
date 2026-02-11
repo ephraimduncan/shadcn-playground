@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Editor, { type OnMount } from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -124,23 +124,10 @@ const DEFAULT_CSS_CODE = `@import "tailwindcss";
   --ring: oklch(0.556 0 0);
 }`;
 
-interface EditorPanelProps {
-  onCursorChange?: (line: number, column: number) => void;
-}
-
-export function EditorPanel({ onCursorChange }: EditorPanelProps) {
+export function EditorPanel() {
   const { resolvedTheme } = useTheme();
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("tsx");
-
-  const handleEditorMount: OnMount = useCallback(
-    (editor) => {
-      editor.onDidChangeCursorPosition((e) => {
-        onCursorChange?.(e.position.lineNumber, e.position.column);
-      });
-    },
-    [onCursorChange]
-  );
 
   const handleCopy = useCallback(() => {
     const code = activeTab === "tsx" ? DEFAULT_TSX_CODE : DEFAULT_CSS_CODE;
@@ -210,7 +197,7 @@ export function EditorPanel({ onCursorChange }: EditorPanelProps) {
             language="typescript"
             theme={resolvedTheme === "dark" ? "vs-dark" : "light"}
             value={DEFAULT_TSX_CODE}
-            onMount={handleEditorMount}
+
             options={{
               minimap: { enabled: false },
               fontSize: 13,
@@ -238,7 +225,7 @@ export function EditorPanel({ onCursorChange }: EditorPanelProps) {
             language="css"
             theme={resolvedTheme === "dark" ? "vs-dark" : "light"}
             value={DEFAULT_CSS_CODE}
-            onMount={handleEditorMount}
+
             options={{
               minimap: { enabled: false },
               fontSize: 13,
