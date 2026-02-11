@@ -85,7 +85,7 @@ export function Navbar({ layoutMode, onLayoutModeChange }: NavbarProps) {
           </Tooltip>
         </ToggleGroup>
 
-        <Separator orientation="vertical" className="mx-1 h-5" />
+        <Separator orientation="vertical" className="mx-1 self-stretch" />
 
         <Tooltip>
           <TooltipTrigger asChild>
@@ -118,7 +118,7 @@ export function Navbar({ layoutMode, onLayoutModeChange }: NavbarProps) {
           <TooltipContent>View on GitHub</TooltipContent>
         </Tooltip>
 
-        <Separator orientation="vertical" className="mx-1 h-5" />
+        <Separator orientation="vertical" className="mx-1 self-stretch" />
 
         <Button variant="default" size="sm">
           <IconShare className="size-3.5" />

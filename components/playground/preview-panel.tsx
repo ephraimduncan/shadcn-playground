@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,22 +15,73 @@ import {
   IconReload,
 } from "@tabler/icons-react";
 import { SamplePreview } from "./sample-preview";
+import { cn } from "@/lib/utils";
 
 type Viewport = "desktop" | "tablet" | "mobile";
 
-const viewportWidths: Record<Viewport, string> = {
-  desktop: "100%",
-  tablet: "768px",
-  mobile: "375px",
+type ViewportConfig = {
+  width?: number;
+  height?: number;
+  showBoundary: boolean;
+  contentPadding: string;
+};
+
+const viewportConfigs: Record<Viewport, ViewportConfig> = {
+  desktop: {
+    showBoundary: false,
+    contentPadding: "32px",
+  },
+  tablet: {
+    width: 834,
+    height: 1194,
+    showBoundary: true,
+    contentPadding: "32px",
+  },
+  mobile: {
+    width: 390,
+    height: 844,
+    showBoundary: true,
+    contentPadding: "16px",
+  },
 };
 
 export function PreviewPanel() {
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [availableSize, setAvailableSize] = useState({ width: 0, height: 0 });
+  const activeViewportConfig = viewportConfigs[viewport];
+  const viewportContainerRef = useRef<HTMLDivElement | null>(null);
 
   const handleRefresh = useCallback(() => {
     setRefreshKey((k) => k + 1);
   }, []);
+
+  useEffect(() => {
+    const container = viewportContainerRef.current;
+    if (!container || typeof ResizeObserver === "undefined") return;
+
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setAvailableSize({ width, height });
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  const frameScale = useMemo(() => {
+    if (!activeViewportConfig.width || !activeViewportConfig.height) return 1;
+    if (!availableSize.width || !availableSize.height) return 1;
+
+    return Math.min(
+      availableSize.width / activeViewportConfig.width,
+      availableSize.height / activeViewportConfig.height,
+      1,
+    );
+  }, [activeViewportConfig, availableSize]);
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -91,7 +142,7 @@ export function PreviewPanel() {
       </div>
 
       <div
-        className="flex-1 overflow-auto"
+        className="flex-1 overflow-hidden"
         style={{
           backgroundImage:
             "radial-gradient(circle, oklch(0.5 0 0 / 15%) 1px, transparent 1px)",
@@ -99,14 +150,32 @@ export function PreviewPanel() {
         }}
       >
         <div
-          className="mx-auto h-full transition-all duration-300"
-          style={{ width: viewportWidths[viewport] }}
+          ref={viewportContainerRef}
+          className="flex h-full w-full items-center justify-center p-4"
         >
           <div
-            key={refreshKey}
-            className="flex h-full items-center justify-center p-8"
+            className="origin-center transition-[width,height,transform] duration-300"
+            style={{
+              width: activeViewportConfig.width
+                ? `${activeViewportConfig.width}px`
+                : "100%",
+              height: activeViewportConfig.height
+                ? `${activeViewportConfig.height}px`
+                : "100%",
+              transform: `scale(${frameScale})`,
+            }}
           >
-            <SamplePreview />
+            <div
+              key={refreshKey}
+              className={cn(
+                "flex h-full items-center justify-center",
+                activeViewportConfig.showBoundary &&
+                  "rounded-xl border border-border bg-background shadow-sm",
+              )}
+              style={{ padding: activeViewportConfig.contentPadding }}
+            >
+              <SamplePreview />
+            </div>
           </div>
         </div>
       </div>

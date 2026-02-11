@@ -26,11 +26,11 @@ export default function Page() {
             direction="horizontal"
             className="h-full"
           >
-            <ResizablePanel defaultSize={50} minSize={25}>
+            <ResizablePanel defaultSize={35} minSize={25}>
               <EditorPanel />
             </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={50} minSize={25}>
+            <ResizableHandle withHandle className="focus-visible:ring-0 focus-visible:ring-offset-0" />
+            <ResizablePanel defaultSize={65} minSize={25}>
               <PreviewPanel />
             </ResizablePanel>
           </ResizablePanelGroup>
