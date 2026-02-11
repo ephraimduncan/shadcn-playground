@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,11 @@ const viewportWidths: Record<Viewport, string> = {
 
 export function PreviewPanel() {
   const [viewport, setViewport] = useState<Viewport>("desktop");
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshKey((k) => k + 1);
+  }, []);
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -41,7 +46,6 @@ export function PreviewPanel() {
             onValueChange={(value) => {
               if (value) setViewport(value as Viewport);
             }}
-            variant="default"
             size="sm"
           >
             <Tooltip>
@@ -76,6 +80,7 @@ export function PreviewPanel() {
                 variant="ghost"
                 size="icon-sm"
                 aria-label="Reload preview"
+                onClick={handleRefresh}
               >
                 <IconReload className="size-3.5" />
               </Button>
@@ -85,17 +90,22 @@ export function PreviewPanel() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div
+        className="flex-1 overflow-auto"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, oklch(0.5 0 0 / 15%) 1px, transparent 1px)",
+          backgroundSize: "16px 16px",
+        }}
+      >
         <div
-          className="mx-auto flex min-h-full items-center justify-center transition-all duration-300 rounded-lg"
-          style={{
-            maxWidth: viewportWidths[viewport],
-            backgroundImage:
-              "radial-gradient(circle, oklch(0.5 0 0 / 15%) 1px, transparent 1px)",
-            backgroundSize: "16px 16px",
-          }}
+          className="mx-auto h-full transition-all duration-300"
+          style={{ width: viewportWidths[viewport] }}
         >
-          <div className="flex items-center justify-center p-8">
+          <div
+            key={refreshKey}
+            className="flex h-full items-center justify-center p-8"
+          >
             <SamplePreview />
           </div>
         </div>
