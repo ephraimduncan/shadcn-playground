@@ -93,6 +93,7 @@ export function PreviewPanel() {
         <div className="flex items-center gap-1">
           <ToggleGroup
             type="single"
+            variant="outline"
             value={viewport}
             onValueChange={(value) => {
               if (value) setViewport(value as Viewport);

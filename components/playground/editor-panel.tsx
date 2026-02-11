@@ -97,7 +97,7 @@ export function EditorPanel() {
   return (
     <div className="flex h-full flex-col bg-background">
       <div className="flex h-10 shrink-0 items-center justify-between border-b border-border px-3">
-        <span className="text-xs text-muted-foreground">Component.tsx</span>
+        <span className="text-xs text-muted-foreground">component.tsx</span>
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
