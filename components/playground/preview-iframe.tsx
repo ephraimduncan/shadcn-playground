@@ -26,9 +26,11 @@ export function PreviewIframe({
 
   useEffect(() => { setMounted(true) }, [])
 
+  const initialThemeRef = useRef(theme)
+
   const html = useMemo(
-    () => (mounted ? generateIframeHTML(theme === "dark" ? "dark" : "light") : undefined),
-    [mounted, theme],
+    () => (mounted ? generateIframeHTML(initialThemeRef.current === "dark" ? "dark" : "light") : undefined),
+    [mounted],
   )
 
   const sendCode = useCallback(

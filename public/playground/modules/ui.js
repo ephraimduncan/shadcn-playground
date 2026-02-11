@@ -4630,15 +4630,64 @@ function TableCaption({
   );
 }
 
+// components/ui/example.tsx
+import { jsx as jsx49, jsxs as jsxs20 } from "react/jsx-runtime";
+function ExampleWrapper({ className, ...props }) {
+  return /* @__PURE__ */ jsx49("div", { className: "bg-background w-full", children: /* @__PURE__ */ jsx49(
+    "div",
+    {
+      "data-slot": "example-wrapper",
+      className: cn(
+        "mx-auto grid min-h-screen w-full max-w-5xl min-w-0 content-center items-start gap-8 p-4 pt-2 sm:gap-12 sm:p-6 md:grid-cols-2 md:gap-8 lg:p-12 2xl:max-w-6xl",
+        className
+      ),
+      ...props
+    }
+  ) });
+}
+function Example({
+  title,
+  children,
+  className,
+  containerClassName,
+  ...props
+}) {
+  return /* @__PURE__ */ jsxs20(
+    "div",
+    {
+      "data-slot": "example",
+      className: cn(
+        "mx-auto flex w-full max-w-lg min-w-0 flex-col gap-1 self-stretch lg:max-w-none",
+        containerClassName
+      ),
+      ...props,
+      children: [
+        title && /* @__PURE__ */ jsx49("div", { className: "text-muted-foreground px-1.5 py-2 text-xs font-medium", children: title }),
+        /* @__PURE__ */ jsx49(
+          "div",
+          {
+            "data-slot": "example-content",
+            className: cn(
+              "bg-background text-foreground flex min-w-0 flex-1 flex-col items-start gap-6 border border-dashed p-4 sm:p-6 *:[div:not([class*='w-'])]:w-full",
+              className
+            ),
+            children
+          }
+        )
+      ]
+    }
+  );
+}
+
 // components/ui/checkbox.tsx
 import { Checkbox as CheckboxPrimitive } from "radix-ui";
 import { IconCheck as IconCheck4 } from "@tabler/icons-react";
-import { jsx as jsx49 } from "react/jsx-runtime";
+import { jsx as jsx50 } from "react/jsx-runtime";
 function Checkbox({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx49(
+  return /* @__PURE__ */ jsx50(
     CheckboxPrimitive.Root,
     {
       "data-slot": "checkbox",
@@ -4647,12 +4696,12 @@ function Checkbox({
         className
       ),
       ...props,
-      children: /* @__PURE__ */ jsx49(
+      children: /* @__PURE__ */ jsx50(
         CheckboxPrimitive.Indicator,
         {
           "data-slot": "checkbox-indicator",
           className: "[&>svg]:size-3.5 grid place-content-center text-current transition-none",
-          children: /* @__PURE__ */ jsx49(
+          children: /* @__PURE__ */ jsx50(
             IconCheck4,
             {}
           )
@@ -4664,23 +4713,23 @@ function Checkbox({
 
 // components/ui/spinner.tsx
 import { IconLoader as IconLoader2 } from "@tabler/icons-react";
-import { jsx as jsx50 } from "react/jsx-runtime";
+import { jsx as jsx51 } from "react/jsx-runtime";
 function Spinner({ className, ...props }) {
-  return /* @__PURE__ */ jsx50(IconLoader2, { role: "status", "aria-label": "Loading", className: cn("size-4 animate-spin", className), ...props });
+  return /* @__PURE__ */ jsx51(IconLoader2, { role: "status", "aria-label": "Loading", className: cn("size-4 animate-spin", className), ...props });
 }
 
 // components/ui/collapsible.tsx
 import { Collapsible as CollapsiblePrimitive } from "radix-ui";
-import { jsx as jsx51 } from "react/jsx-runtime";
+import { jsx as jsx52 } from "react/jsx-runtime";
 function Collapsible({
   ...props
 }) {
-  return /* @__PURE__ */ jsx51(CollapsiblePrimitive.Root, { "data-slot": "collapsible", ...props });
+  return /* @__PURE__ */ jsx52(CollapsiblePrimitive.Root, { "data-slot": "collapsible", ...props });
 }
 function CollapsibleTrigger({
   ...props
 }) {
-  return /* @__PURE__ */ jsx51(
+  return /* @__PURE__ */ jsx52(
     CollapsiblePrimitive.CollapsibleTrigger,
     {
       "data-slot": "collapsible-trigger",
@@ -4691,7 +4740,7 @@ function CollapsibleTrigger({
 function CollapsibleContent({
   ...props
 }) {
-  return /* @__PURE__ */ jsx51(
+  return /* @__PURE__ */ jsx52(
     CollapsiblePrimitive.CollapsibleContent,
     {
       "data-slot": "collapsible-content",
@@ -4703,21 +4752,21 @@ function CollapsibleContent({
 // components/ui/dropdown-menu.tsx
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import { IconCheck as IconCheck5, IconChevronRight as IconChevronRight5 } from "@tabler/icons-react";
-import { jsx as jsx52, jsxs as jsxs20 } from "react/jsx-runtime";
+import { jsx as jsx53, jsxs as jsxs21 } from "react/jsx-runtime";
 function DropdownMenu({
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(DropdownMenuPrimitive.Root, { "data-slot": "dropdown-menu", ...props });
+  return /* @__PURE__ */ jsx53(DropdownMenuPrimitive.Root, { "data-slot": "dropdown-menu", ...props });
 }
 function DropdownMenuPortal({
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(DropdownMenuPrimitive.Portal, { "data-slot": "dropdown-menu-portal", ...props });
+  return /* @__PURE__ */ jsx53(DropdownMenuPrimitive.Portal, { "data-slot": "dropdown-menu-portal", ...props });
 }
 function DropdownMenuTrigger({
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(
+  return /* @__PURE__ */ jsx53(
     DropdownMenuPrimitive.Trigger,
     {
       "data-slot": "dropdown-menu-trigger",
@@ -4731,7 +4780,7 @@ function DropdownMenuContent({
   sideOffset = 4,
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(DropdownMenuPrimitive.Portal, { children: /* @__PURE__ */ jsx52(
+  return /* @__PURE__ */ jsx53(DropdownMenuPrimitive.Portal, { children: /* @__PURE__ */ jsx53(
     DropdownMenuPrimitive.Content,
     {
       "data-slot": "dropdown-menu-content",
@@ -4745,7 +4794,7 @@ function DropdownMenuContent({
 function DropdownMenuGroup({
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(DropdownMenuPrimitive.Group, { "data-slot": "dropdown-menu-group", ...props });
+  return /* @__PURE__ */ jsx53(DropdownMenuPrimitive.Group, { "data-slot": "dropdown-menu-group", ...props });
 }
 function DropdownMenuItem({
   className,
@@ -4753,7 +4802,7 @@ function DropdownMenuItem({
   variant = "default",
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(
+  return /* @__PURE__ */ jsx53(
     DropdownMenuPrimitive.Item,
     {
       "data-slot": "dropdown-menu-item",
@@ -4774,7 +4823,7 @@ function DropdownMenuCheckboxItem({
   inset,
   ...props
 }) {
-  return /* @__PURE__ */ jsxs20(
+  return /* @__PURE__ */ jsxs21(
     DropdownMenuPrimitive.CheckboxItem,
     {
       "data-slot": "dropdown-menu-checkbox-item",
@@ -4786,12 +4835,12 @@ function DropdownMenuCheckboxItem({
       checked,
       ...props,
       children: [
-        /* @__PURE__ */ jsx52(
+        /* @__PURE__ */ jsx53(
           "span",
           {
             className: "absolute right-2 flex items-center justify-center pointer-events-none",
             "data-slot": "dropdown-menu-checkbox-item-indicator",
-            children: /* @__PURE__ */ jsx52(DropdownMenuPrimitive.ItemIndicator, { children: /* @__PURE__ */ jsx52(
+            children: /* @__PURE__ */ jsx53(DropdownMenuPrimitive.ItemIndicator, { children: /* @__PURE__ */ jsx53(
               IconCheck5,
               {}
             ) })
@@ -4805,7 +4854,7 @@ function DropdownMenuCheckboxItem({
 function DropdownMenuRadioGroup({
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(
+  return /* @__PURE__ */ jsx53(
     DropdownMenuPrimitive.RadioGroup,
     {
       "data-slot": "dropdown-menu-radio-group",
@@ -4819,7 +4868,7 @@ function DropdownMenuRadioItem({
   inset,
   ...props
 }) {
-  return /* @__PURE__ */ jsxs20(
+  return /* @__PURE__ */ jsxs21(
     DropdownMenuPrimitive.RadioItem,
     {
       "data-slot": "dropdown-menu-radio-item",
@@ -4830,12 +4879,12 @@ function DropdownMenuRadioItem({
       ),
       ...props,
       children: [
-        /* @__PURE__ */ jsx52(
+        /* @__PURE__ */ jsx53(
           "span",
           {
             className: "absolute right-2 flex items-center justify-center pointer-events-none",
             "data-slot": "dropdown-menu-radio-item-indicator",
-            children: /* @__PURE__ */ jsx52(DropdownMenuPrimitive.ItemIndicator, { children: /* @__PURE__ */ jsx52(
+            children: /* @__PURE__ */ jsx53(DropdownMenuPrimitive.ItemIndicator, { children: /* @__PURE__ */ jsx53(
               IconCheck5,
               {}
             ) })
@@ -4851,7 +4900,7 @@ function DropdownMenuLabel({
   inset,
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(
+  return /* @__PURE__ */ jsx53(
     DropdownMenuPrimitive.Label,
     {
       "data-slot": "dropdown-menu-label",
@@ -4865,7 +4914,7 @@ function DropdownMenuSeparator({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(
+  return /* @__PURE__ */ jsx53(
     DropdownMenuPrimitive.Separator,
     {
       "data-slot": "dropdown-menu-separator",
@@ -4878,7 +4927,7 @@ function DropdownMenuShortcut({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(
+  return /* @__PURE__ */ jsx53(
     "span",
     {
       "data-slot": "dropdown-menu-shortcut",
@@ -4890,7 +4939,7 @@ function DropdownMenuShortcut({
 function DropdownMenuSub({
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(DropdownMenuPrimitive.Sub, { "data-slot": "dropdown-menu-sub", ...props });
+  return /* @__PURE__ */ jsx53(DropdownMenuPrimitive.Sub, { "data-slot": "dropdown-menu-sub", ...props });
 }
 function DropdownMenuSubTrigger({
   className,
@@ -4898,7 +4947,7 @@ function DropdownMenuSubTrigger({
   children,
   ...props
 }) {
-  return /* @__PURE__ */ jsxs20(
+  return /* @__PURE__ */ jsxs21(
     DropdownMenuPrimitive.SubTrigger,
     {
       "data-slot": "dropdown-menu-sub-trigger",
@@ -4910,7 +4959,7 @@ function DropdownMenuSubTrigger({
       ...props,
       children: [
         children,
-        /* @__PURE__ */ jsx52(IconChevronRight5, { className: "ml-auto" })
+        /* @__PURE__ */ jsx53(IconChevronRight5, { className: "ml-auto" })
       ]
     }
   );
@@ -4919,7 +4968,7 @@ function DropdownMenuSubContent({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx52(
+  return /* @__PURE__ */ jsx53(
     DropdownMenuPrimitive.SubContent,
     {
       "data-slot": "dropdown-menu-sub-content",
@@ -4932,17 +4981,17 @@ function DropdownMenuSubContent({
 // components/ui/select.tsx
 import { Select as SelectPrimitive } from "radix-ui";
 import { IconSelector as IconSelector2, IconCheck as IconCheck6, IconChevronUp as IconChevronUp2, IconChevronDown as IconChevronDown5 } from "@tabler/icons-react";
-import { jsx as jsx53, jsxs as jsxs21 } from "react/jsx-runtime";
+import { jsx as jsx54, jsxs as jsxs22 } from "react/jsx-runtime";
 function Select({
   ...props
 }) {
-  return /* @__PURE__ */ jsx53(SelectPrimitive.Root, { "data-slot": "select", ...props });
+  return /* @__PURE__ */ jsx54(SelectPrimitive.Root, { "data-slot": "select", ...props });
 }
 function SelectGroup({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx53(
+  return /* @__PURE__ */ jsx54(
     SelectPrimitive.Group,
     {
       "data-slot": "select-group",
@@ -4954,7 +5003,7 @@ function SelectGroup({
 function SelectValue({
   ...props
 }) {
-  return /* @__PURE__ */ jsx53(SelectPrimitive.Value, { "data-slot": "select-value", ...props });
+  return /* @__PURE__ */ jsx54(SelectPrimitive.Value, { "data-slot": "select-value", ...props });
 }
 function SelectTrigger({
   className,
@@ -4962,7 +5011,7 @@ function SelectTrigger({
   children,
   ...props
 }) {
-  return /* @__PURE__ */ jsxs21(
+  return /* @__PURE__ */ jsxs22(
     SelectPrimitive.Trigger,
     {
       "data-slot": "select-trigger",
@@ -4974,7 +5023,7 @@ function SelectTrigger({
       ...props,
       children: [
         children,
-        /* @__PURE__ */ jsx53(SelectPrimitive.Icon, { asChild: true, children: /* @__PURE__ */ jsx53(IconSelector2, { className: "text-muted-foreground size-4 pointer-events-none" }) })
+        /* @__PURE__ */ jsx54(SelectPrimitive.Icon, { asChild: true, children: /* @__PURE__ */ jsx54(IconSelector2, { className: "text-muted-foreground size-4 pointer-events-none" }) })
       ]
     }
   );
@@ -4986,7 +5035,7 @@ function SelectContent({
   align = "center",
   ...props
 }) {
-  return /* @__PURE__ */ jsx53(SelectPrimitive.Portal, { children: /* @__PURE__ */ jsxs21(
+  return /* @__PURE__ */ jsx54(SelectPrimitive.Portal, { children: /* @__PURE__ */ jsxs22(
     SelectPrimitive.Content,
     {
       "data-slot": "select-content",
@@ -4996,8 +5045,8 @@ function SelectContent({
       align,
       ...props,
       children: [
-        /* @__PURE__ */ jsx53(SelectScrollUpButton, {}),
-        /* @__PURE__ */ jsx53(
+        /* @__PURE__ */ jsx54(SelectScrollUpButton, {}),
+        /* @__PURE__ */ jsx54(
           SelectPrimitive.Viewport,
           {
             "data-position": position,
@@ -5008,7 +5057,7 @@ function SelectContent({
             children
           }
         ),
-        /* @__PURE__ */ jsx53(SelectScrollDownButton, {})
+        /* @__PURE__ */ jsx54(SelectScrollDownButton, {})
       ]
     }
   ) });
@@ -5017,7 +5066,7 @@ function SelectLabel({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx53(
+  return /* @__PURE__ */ jsx54(
     SelectPrimitive.Label,
     {
       "data-slot": "select-label",
@@ -5031,7 +5080,7 @@ function SelectItem({
   children,
   ...props
 }) {
-  return /* @__PURE__ */ jsxs21(
+  return /* @__PURE__ */ jsxs22(
     SelectPrimitive.Item,
     {
       "data-slot": "select-item",
@@ -5041,8 +5090,8 @@ function SelectItem({
       ),
       ...props,
       children: [
-        /* @__PURE__ */ jsx53("span", { className: "pointer-events-none absolute right-2 flex size-4 items-center justify-center", children: /* @__PURE__ */ jsx53(SelectPrimitive.ItemIndicator, { children: /* @__PURE__ */ jsx53(IconCheck6, { className: "pointer-events-none" }) }) }),
-        /* @__PURE__ */ jsx53(SelectPrimitive.ItemText, { children })
+        /* @__PURE__ */ jsx54("span", { className: "pointer-events-none absolute right-2 flex size-4 items-center justify-center", children: /* @__PURE__ */ jsx54(SelectPrimitive.ItemIndicator, { children: /* @__PURE__ */ jsx54(IconCheck6, { className: "pointer-events-none" }) }) }),
+        /* @__PURE__ */ jsx54(SelectPrimitive.ItemText, { children })
       ]
     }
   );
@@ -5051,7 +5100,7 @@ function SelectSeparator({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx53(
+  return /* @__PURE__ */ jsx54(
     SelectPrimitive.Separator,
     {
       "data-slot": "select-separator",
@@ -5064,13 +5113,13 @@ function SelectScrollUpButton({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx53(
+  return /* @__PURE__ */ jsx54(
     SelectPrimitive.ScrollUpButton,
     {
       "data-slot": "select-scroll-up-button",
       className: cn("bg-popover z-10 flex cursor-default items-center justify-center py-1 [&_svg:not([class*='size-'])]:size-4", className),
       ...props,
-      children: /* @__PURE__ */ jsx53(
+      children: /* @__PURE__ */ jsx54(
         IconChevronUp2,
         {}
       )
@@ -5081,13 +5130,13 @@ function SelectScrollDownButton({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx53(
+  return /* @__PURE__ */ jsx54(
     SelectPrimitive.ScrollDownButton,
     {
       "data-slot": "select-scroll-down-button",
       className: cn("bg-popover z-10 flex cursor-default items-center justify-center py-1 [&_svg:not([class*='size-'])]:size-4", className),
       ...props,
-      children: /* @__PURE__ */ jsx53(
+      children: /* @__PURE__ */ jsx54(
         IconChevronDown5,
         {}
       )
@@ -5098,17 +5147,17 @@ function SelectScrollDownButton({
 // components/ui/context-menu.tsx
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
 import { IconChevronRight as IconChevronRight6, IconCheck as IconCheck7 } from "@tabler/icons-react";
-import { jsx as jsx54, jsxs as jsxs22 } from "react/jsx-runtime";
+import { jsx as jsx55, jsxs as jsxs23 } from "react/jsx-runtime";
 function ContextMenu({
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(ContextMenuPrimitive.Root, { "data-slot": "context-menu", ...props });
+  return /* @__PURE__ */ jsx55(ContextMenuPrimitive.Root, { "data-slot": "context-menu", ...props });
 }
 function ContextMenuTrigger({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(
+  return /* @__PURE__ */ jsx55(
     ContextMenuPrimitive.Trigger,
     {
       "data-slot": "context-menu-trigger",
@@ -5120,22 +5169,22 @@ function ContextMenuTrigger({
 function ContextMenuGroup({
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(ContextMenuPrimitive.Group, { "data-slot": "context-menu-group", ...props });
+  return /* @__PURE__ */ jsx55(ContextMenuPrimitive.Group, { "data-slot": "context-menu-group", ...props });
 }
 function ContextMenuPortal({
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(ContextMenuPrimitive.Portal, { "data-slot": "context-menu-portal", ...props });
+  return /* @__PURE__ */ jsx55(ContextMenuPrimitive.Portal, { "data-slot": "context-menu-portal", ...props });
 }
 function ContextMenuSub({
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(ContextMenuPrimitive.Sub, { "data-slot": "context-menu-sub", ...props });
+  return /* @__PURE__ */ jsx55(ContextMenuPrimitive.Sub, { "data-slot": "context-menu-sub", ...props });
 }
 function ContextMenuRadioGroup({
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(
+  return /* @__PURE__ */ jsx55(
     ContextMenuPrimitive.RadioGroup,
     {
       "data-slot": "context-menu-radio-group",
@@ -5147,7 +5196,7 @@ function ContextMenuContent({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(ContextMenuPrimitive.Portal, { children: /* @__PURE__ */ jsx54(
+  return /* @__PURE__ */ jsx55(ContextMenuPrimitive.Portal, { children: /* @__PURE__ */ jsx55(
     ContextMenuPrimitive.Content,
     {
       "data-slot": "context-menu-content",
@@ -5162,7 +5211,7 @@ function ContextMenuItem({
   variant = "default",
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(
+  return /* @__PURE__ */ jsx55(
     ContextMenuPrimitive.Item,
     {
       "data-slot": "context-menu-item",
@@ -5182,7 +5231,7 @@ function ContextMenuSubTrigger({
   children,
   ...props
 }) {
-  return /* @__PURE__ */ jsxs22(
+  return /* @__PURE__ */ jsxs23(
     ContextMenuPrimitive.SubTrigger,
     {
       "data-slot": "context-menu-sub-trigger",
@@ -5194,7 +5243,7 @@ function ContextMenuSubTrigger({
       ...props,
       children: [
         children,
-        /* @__PURE__ */ jsx54(IconChevronRight6, { className: "ml-auto" })
+        /* @__PURE__ */ jsx55(IconChevronRight6, { className: "ml-auto" })
       ]
     }
   );
@@ -5203,7 +5252,7 @@ function ContextMenuSubContent({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(
+  return /* @__PURE__ */ jsx55(
     ContextMenuPrimitive.SubContent,
     {
       "data-slot": "context-menu-sub-content",
@@ -5219,7 +5268,7 @@ function ContextMenuCheckboxItem({
   inset,
   ...props
 }) {
-  return /* @__PURE__ */ jsxs22(
+  return /* @__PURE__ */ jsxs23(
     ContextMenuPrimitive.CheckboxItem,
     {
       "data-slot": "context-menu-checkbox-item",
@@ -5231,7 +5280,7 @@ function ContextMenuCheckboxItem({
       checked,
       ...props,
       children: [
-        /* @__PURE__ */ jsx54("span", { className: "absolute right-2 pointer-events-none", children: /* @__PURE__ */ jsx54(ContextMenuPrimitive.ItemIndicator, { children: /* @__PURE__ */ jsx54(
+        /* @__PURE__ */ jsx55("span", { className: "absolute right-2 pointer-events-none", children: /* @__PURE__ */ jsx55(ContextMenuPrimitive.ItemIndicator, { children: /* @__PURE__ */ jsx55(
           IconCheck7,
           {}
         ) }) }),
@@ -5246,7 +5295,7 @@ function ContextMenuRadioItem({
   inset,
   ...props
 }) {
-  return /* @__PURE__ */ jsxs22(
+  return /* @__PURE__ */ jsxs23(
     ContextMenuPrimitive.RadioItem,
     {
       "data-slot": "context-menu-radio-item",
@@ -5257,7 +5306,7 @@ function ContextMenuRadioItem({
       ),
       ...props,
       children: [
-        /* @__PURE__ */ jsx54("span", { className: "absolute right-2 pointer-events-none", children: /* @__PURE__ */ jsx54(ContextMenuPrimitive.ItemIndicator, { children: /* @__PURE__ */ jsx54(
+        /* @__PURE__ */ jsx55("span", { className: "absolute right-2 pointer-events-none", children: /* @__PURE__ */ jsx55(ContextMenuPrimitive.ItemIndicator, { children: /* @__PURE__ */ jsx55(
           IconCheck7,
           {}
         ) }) }),
@@ -5271,7 +5320,7 @@ function ContextMenuLabel({
   inset,
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(
+  return /* @__PURE__ */ jsx55(
     ContextMenuPrimitive.Label,
     {
       "data-slot": "context-menu-label",
@@ -5285,7 +5334,7 @@ function ContextMenuSeparator({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(
+  return /* @__PURE__ */ jsx55(
     ContextMenuPrimitive.Separator,
     {
       "data-slot": "context-menu-separator",
@@ -5298,7 +5347,7 @@ function ContextMenuShortcut({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx54(
+  return /* @__PURE__ */ jsx55(
     "span",
     {
       "data-slot": "context-menu-shortcut",
@@ -5312,7 +5361,7 @@ function ContextMenuShortcut({
 import * as React9 from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { IconChevronLeft as IconChevronLeft3, IconChevronRight as IconChevronRight7 } from "@tabler/icons-react";
-import { jsx as jsx55, jsxs as jsxs23 } from "react/jsx-runtime";
+import { jsx as jsx56, jsxs as jsxs24 } from "react/jsx-runtime";
 var CarouselContext = React9.createContext(null);
 function useCarousel() {
   const context = React9.useContext(CarouselContext);
@@ -5375,7 +5424,7 @@ function Carousel({
       api?.off("select", onSelect);
     };
   }, [api, onSelect]);
-  return /* @__PURE__ */ jsx55(
+  return /* @__PURE__ */ jsx56(
     CarouselContext.Provider,
     {
       value: {
@@ -5388,7 +5437,7 @@ function Carousel({
         canScrollPrev,
         canScrollNext
       },
-      children: /* @__PURE__ */ jsx55(
+      children: /* @__PURE__ */ jsx56(
         "div",
         {
           onKeyDownCapture: handleKeyDown,
@@ -5405,13 +5454,13 @@ function Carousel({
 }
 function CarouselContent({ className, ...props }) {
   const { carouselRef, orientation } = useCarousel();
-  return /* @__PURE__ */ jsx55(
+  return /* @__PURE__ */ jsx56(
     "div",
     {
       ref: carouselRef,
       className: "overflow-hidden",
       "data-slot": "carousel-content",
-      children: /* @__PURE__ */ jsx55(
+      children: /* @__PURE__ */ jsx56(
         "div",
         {
           className: cn(
@@ -5427,7 +5476,7 @@ function CarouselContent({ className, ...props }) {
 }
 function CarouselItem({ className, ...props }) {
   const { orientation } = useCarousel();
-  return /* @__PURE__ */ jsx55(
+  return /* @__PURE__ */ jsx56(
     "div",
     {
       role: "group",
@@ -5449,7 +5498,7 @@ function CarouselPrevious({
   ...props
 }) {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel();
-  return /* @__PURE__ */ jsxs23(
+  return /* @__PURE__ */ jsxs24(
     Button,
     {
       "data-slot": "carousel-previous",
@@ -5464,8 +5513,8 @@ function CarouselPrevious({
       onClick: scrollPrev,
       ...props,
       children: [
-        /* @__PURE__ */ jsx55(IconChevronLeft3, {}),
-        /* @__PURE__ */ jsx55("span", { className: "sr-only", children: "Previous slide" })
+        /* @__PURE__ */ jsx56(IconChevronLeft3, {}),
+        /* @__PURE__ */ jsx56("span", { className: "sr-only", children: "Previous slide" })
       ]
     }
   );
@@ -5477,7 +5526,7 @@ function CarouselNext({
   ...props
 }) {
   const { orientation, scrollNext, canScrollNext } = useCarousel();
-  return /* @__PURE__ */ jsxs23(
+  return /* @__PURE__ */ jsxs24(
     Button,
     {
       "data-slot": "carousel-next",
@@ -5492,8 +5541,8 @@ function CarouselNext({
       onClick: scrollNext,
       ...props,
       children: [
-        /* @__PURE__ */ jsx55(IconChevronRight7, {}),
-        /* @__PURE__ */ jsx55("span", { className: "sr-only", children: "Next slide" })
+        /* @__PURE__ */ jsx56(IconChevronRight7, {}),
+        /* @__PURE__ */ jsx56("span", { className: "sr-only", children: "Next slide" })
       ]
     }
   );
@@ -5643,6 +5692,8 @@ export {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
+  Example,
+  ExampleWrapper,
   Field,
   FieldContent,
   FieldDescription,

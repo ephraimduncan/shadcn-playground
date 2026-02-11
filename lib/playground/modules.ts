@@ -26,6 +26,7 @@ const UI_COMPONENT_NAMES = [
   "drawer",
   "dropdown-menu",
   "empty",
+  "example",
   "field",
   "hover-card",
   "input",
