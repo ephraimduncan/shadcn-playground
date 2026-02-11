@@ -106,7 +106,7 @@ export function Navbar({ layoutMode, onLayoutModeChange }: NavbarProps) {
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon-sm" asChild>
               <a
-                href="https://github.com/shadcn-ui/ui"
+                href="https://github.com/ephraimduncan/shadcn-play"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"

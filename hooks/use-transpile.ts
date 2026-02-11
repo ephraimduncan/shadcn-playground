@@ -14,6 +14,15 @@ export function useTranspile(code: string): TranspileResult | null {
   useEffect(() => {
     codeRef.current = code
 
+    if (!code.trim()) {
+      if (errorTimerRef.current) {
+        clearTimeout(errorTimerRef.current)
+        errorTimerRef.current = null
+      }
+      setResult(null)
+      return
+    }
+
     const debounceTimer = setTimeout(() => {
       const transpiled = transpileTSX(code)
 

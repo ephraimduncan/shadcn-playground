@@ -50,22 +50,22 @@ interface PreviewPanelProps {
   compilationResult: TranspileResult | null;
   transpileError?: TranspileError | null;
   theme: string;
+  runtimeError: string;
+  onRuntimeError: (message: string) => void;
 }
 
-export function PreviewPanel({ compilationResult, transpileError, theme }: PreviewPanelProps) {
+export function PreviewPanel({ compilationResult, transpileError, theme, runtimeError, onRuntimeError }: PreviewPanelProps) {
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [refreshKey, setRefreshKey] = useState(0);
   const [availableSize, setAvailableSize] = useState({ width: 0, height: 0 });
-  const [runtimeError, setRuntimeError] = useState("");
   const [status, setStatus] = useState<PreviewStatus>("idle");
   const activeViewportConfig = viewportConfigs[viewport];
   const viewportContainerRef = useRef<HTMLDivElement | null>(null);
 
   const handleRefresh = useCallback(() => {
-    setRefreshKey((k) => k + 1);
-    setRuntimeError("");
+    onRuntimeError("");
     setStatus("idle");
-  }, []);
+  }, [onRuntimeError]);
 
   const displayError = runtimeError || transpileError?.message || "";
 
@@ -200,7 +200,7 @@ export function PreviewPanel({ compilationResult, transpileError, theme }: Previ
                 key={refreshKey}
                 compilationResult={compilationResult}
                 theme={theme}
-                onRuntimeError={setRuntimeError}
+                onRuntimeError={onRuntimeError}
                 onStatusChange={setStatus}
               />
               {displayError && (

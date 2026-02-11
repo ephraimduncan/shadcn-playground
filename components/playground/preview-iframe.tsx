@@ -79,13 +79,21 @@ export function PreviewIframe({
   }, [iframeReady, sendCode])
 
   useEffect(() => {
-    if (!compilationResult) return
+    if (!compilationResult) {
+      const iframe = iframeRef.current
+      if (iframe?.contentWindow && iframeReady) {
+        iframe.contentWindow.postMessage({ type: "clear" }, "*")
+        onRuntimeError("")
+        onStatusChange("idle")
+      }
+      return
+    }
     if ("error" in compilationResult) {
       onStatusChange("error")
       return
     }
     sendCode(compilationResult.js)
-  }, [compilationResult, sendCode, onStatusChange])
+  }, [compilationResult, sendCode, onStatusChange, iframeReady, onRuntimeError])
 
   useEffect(() => {
     const iframe = iframeRef.current

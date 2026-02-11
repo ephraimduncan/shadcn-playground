@@ -24,7 +24,7 @@ export function StatusBar() {
         </a>
         {". The source code is available on "}
         <a
-          href="https://github.com/ephraimduncan/blocks"
+          href="https://github.com/ephraimduncan/shadcn-play"
           target="_blank"
           rel="noopener noreferrer"
           className="underline underline-offset-2 hover:text-foreground transition-colors"

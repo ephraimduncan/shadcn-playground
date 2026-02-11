@@ -95,7 +95,9 @@ window.addEventListener("message", async (e) => {
       prevBlobUrl = blobUrl;
       const Comp = mod.default || Object.values(mod).find(v => typeof v === "function");
       if (typeof Comp !== "function") {
-        throw new Error("No React component found. Export a component as default or named export.");
+        root.render(null);
+        window.parent.postMessage({ type: "render-complete" }, "*");
+        return;
       }
       root.render(React.createElement(ErrorBoundary, { key: Date.now() }, React.createElement(Comp)));
       window.parent.postMessage({ type: "render-complete" }, "*");
@@ -103,6 +105,13 @@ window.addEventListener("message", async (e) => {
       showError(err.message);
       window.parent.postMessage({ type: "runtime-error", message: err.message, stack: err.stack || "" }, "*");
     }
+  }
+
+  if (e.data.type === "clear") {
+    hideError();
+    root.render(null);
+    if (prevBlobUrl) { URL.revokeObjectURL(prevBlobUrl); prevBlobUrl = null; }
+    return;
   }
 
   if (e.data.type === "theme") {

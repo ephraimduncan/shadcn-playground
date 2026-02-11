@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Editor, { type BeforeMount } from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { IconCopy, IconCheck, IconWand } from "@tabler/icons-react";
+import { toast } from "sonner";
 import type { TranspileError } from "@/lib/playground/transpile";
 import type { editor } from "monaco-editor";
 
@@ -99,40 +100,99 @@ interface EditorPanelProps {
   code: string;
   onCodeChange: (code: string) => void;
   error?: TranspileError | null;
+  runtimeError?: string;
 }
 
-export function EditorPanel({ code, onCodeChange, error }: EditorPanelProps) {
+function findIdentifierInSource(
+  code: string,
+  errorMessage: string,
+): { line: number; startColumn: number; endColumn: number } | null {
+  const patterns = [
+    /(\w+) is not defined/,
+    /(\w+) is not a function/,
+    /Cannot read properties of (\w+)/,
+    /(\w+) is not a constructor/,
+    /Cannot find module ['"]([^'"]+)['"]/,
+  ];
+
+  let identifier: string | null = null;
+  for (const pattern of patterns) {
+    const match = errorMessage.match(pattern);
+    if (match) {
+      identifier = match[1];
+      break;
+    }
+  }
+
+  if (!identifier) return null;
+
+  const lines = code.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const col = lines[i].indexOf(identifier);
+    if (col !== -1) {
+      return {
+        line: i + 1,
+        startColumn: col + 1,
+        endColumn: col + 1 + identifier.length,
+      };
+    }
+  }
+
+  return null;
+}
+
+export function EditorPanel({ code, onCodeChange, error, runtimeError }: EditorPanelProps) {
   const { resolvedTheme } = useTheme();
   const [copied, setCopied] = useState(false);
-  const editorRef = useCallback(
-    (editorInstance: editor.IStandaloneCodeEditor | null) => {
-      if (!editorInstance) return;
-      const model = editorInstance.getModel();
-      if (!model) return;
+  const editorInstanceRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
-      if (error) {
-        const monaco = (window as unknown as { monaco: typeof import("monaco-editor") }).monaco;
-        if (monaco) {
-          monaco.editor.setModelMarkers(model, "playground", [
-            {
-              startLineNumber: error.line,
-              startColumn: error.column + 1,
-              endLineNumber: error.line,
-              endColumn: model.getLineMaxColumn(error.line),
-              message: error.message,
-              severity: monaco.MarkerSeverity.Error,
-            },
-          ]);
-        }
+  useEffect(() => {
+    const editorInstance = editorInstanceRef.current;
+    if (!editorInstance) return;
+    const model = editorInstance.getModel();
+    if (!model) return;
+
+    const monaco = (window as unknown as { monaco: typeof import("monaco-editor") }).monaco;
+    if (!monaco) return;
+
+    const markers: Parameters<typeof monaco.editor.setModelMarkers>[2] = [];
+
+    if (error) {
+      markers.push({
+        startLineNumber: error.line,
+        startColumn: error.column + 1,
+        endLineNumber: error.line,
+        endColumn: model.getLineMaxColumn(error.line),
+        message: error.message,
+        severity: monaco.MarkerSeverity.Error,
+      });
+    }
+
+    if (runtimeError && !error) {
+      const loc = findIdentifierInSource(code, runtimeError);
+      if (loc) {
+        markers.push({
+          startLineNumber: loc.line,
+          startColumn: loc.startColumn,
+          endLineNumber: loc.line,
+          endColumn: loc.endColumn,
+          message: runtimeError,
+          severity: monaco.MarkerSeverity.Error,
+        });
       } else {
-        const monaco = (window as unknown as { monaco: typeof import("monaco-editor") }).monaco;
-        if (monaco) {
-          monaco.editor.setModelMarkers(model, "playground", []);
-        }
+        markers.push({
+          startLineNumber: 1,
+          startColumn: 1,
+          endLineNumber: 1,
+          endColumn: model.getLineMaxColumn(1),
+          message: runtimeError,
+          severity: monaco.MarkerSeverity.Error,
+        });
       }
-    },
-    [error],
-  );
+    }
+
+    monaco.editor.setModelMarkers(model, "playground", markers);
+  }, [error, runtimeError, code]);
 
   const handleBeforeMount: BeforeMount = useCallback((monaco) => {
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
@@ -148,6 +208,7 @@ export function EditorPanel({ code, onCodeChange, error }: EditorPanelProps) {
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(code);
     setCopied(true);
+    toast.success("Copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
   }, [code]);
 
@@ -192,11 +253,12 @@ export function EditorPanel({ code, onCodeChange, error }: EditorPanelProps) {
         <Editor
           height="100%"
           language="typescript"
+          path="file:///component.tsx"
           theme={resolvedTheme === "dark" ? "vs-dark" : "light"}
           value={code}
           onChange={(value) => onCodeChange(value ?? "")}
           beforeMount={handleBeforeMount}
-          onMount={(instance) => editorRef(instance)}
+          onMount={(instance) => { editorInstanceRef.current = instance; }}
           options={{
             minimap: { enabled: false },
             fontSize: 13,
@@ -211,9 +273,11 @@ export function EditorPanel({ code, onCodeChange, error }: EditorPanelProps) {
             scrollbar: {
               verticalScrollbarSize: 8,
               horizontalScrollbarSize: 8,
+              useShadows: false,
             },
             wordWrap: "on",
             tabSize: 2,
+            stickyScroll: { enabled: false },
             automaticLayout: true,
           }}
         />
