@@ -15,6 +15,7 @@ export type ConsoleEntry = {
 
 interface PreviewIframeProps {
   compilationResult: TranspileResult | null;
+  tailwindCSS: string | null;
   theme: string;
   onRuntimeError: (message: string) => void;
   onStatusChange: (status: PreviewStatus) => void;
@@ -23,6 +24,7 @@ interface PreviewIframeProps {
 
 export function PreviewIframe({
   compilationResult,
+  tailwindCSS,
   theme,
   onRuntimeError,
   onStatusChange,
@@ -125,6 +127,15 @@ export function PreviewIframe({
     iframeReady,
     onRuntimeError,
   ]);
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe?.contentWindow || !iframeReady || tailwindCSS === null) return;
+    iframe.contentWindow.postMessage(
+      { type: "tailwind-css", css: tailwindCSS },
+      "*",
+    );
+  }, [tailwindCSS, iframeReady]);
 
   useEffect(() => {
     const iframe = iframeRef.current;

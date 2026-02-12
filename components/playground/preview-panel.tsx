@@ -58,6 +58,7 @@ const viewportConfigs: Record<Viewport, ViewportConfig> = {
 
 interface PreviewPanelProps {
   compilationResult: TranspileResult | null;
+  tailwindCSS: string | null;
   transpileError?: TranspileError | null;
   theme: string;
   runtimeError: string;
@@ -69,6 +70,7 @@ interface PreviewPanelProps {
 
 export function PreviewPanel({
   compilationResult,
+  tailwindCSS,
   transpileError,
   theme,
   runtimeError,
@@ -250,6 +252,7 @@ export function PreviewPanel({
                 <PreviewIframe
                   key={refreshKey}
                   compilationResult={compilationResult}
+                  tailwindCSS={tailwindCSS}
                   theme={theme}
                   onRuntimeError={onRuntimeError}
                   onStatusChange={handleStatusChange}

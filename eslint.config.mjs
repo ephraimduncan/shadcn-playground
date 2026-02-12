@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "public/playground/modules/**",
+    "public/playground/tailwind-worker.js",
+    "public/playground/ui-candidates.json",
   ]),
 ]);
 
