@@ -173,6 +173,12 @@ export function EditorPanel({
   const editorInstanceRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const jsxHighlightDisposeRef = useRef<(() => void) | null>(null);
   const handleFormatRef = useRef<() => void>(() => {});
+  const pendingCursorRestoreRef = useRef<{
+    cursorOffset: number;
+    scrollTop: number;
+    scrollLeft: number;
+    formattedCode: string;
+  } | null>(null);
 
   const handleFormat = useCallback(async () => {
     if (isFormatting || !code.trim()) return;
@@ -197,13 +203,16 @@ export function EditorPanel({
         ...PRETTIER_OPTIONS,
       });
 
-      onCodeChange(result.formatted);
-
       if (editorInstance && model) {
-        const newPosition = model.getPositionAt(result.cursorOffset);
-        editorInstance.setPosition(newPosition);
-        editorInstance.setScrollTop(scrollTop);
+        pendingCursorRestoreRef.current = {
+          cursorOffset: result.cursorOffset,
+          scrollTop,
+          scrollLeft: editorInstance.getScrollLeft(),
+          formattedCode: result.formatted,
+        };
       }
+
+      onCodeChange(result.formatted);
 
       toast.success("Formatted");
     } catch (err) {
@@ -215,6 +224,24 @@ export function EditorPanel({
   }, [code, isFormatting, onCodeChange]);
 
   handleFormatRef.current = handleFormat;
+
+  useEffect(() => {
+    const pending = pendingCursorRestoreRef.current;
+    if (!pending) return;
+    if (pending.formattedCode !== code) return;
+
+    const editorInstance = editorInstanceRef.current;
+    const model = editorInstance?.getModel();
+    if (!editorInstance || !model) return;
+
+    if (model.getValue() !== pending.formattedCode) return;
+
+    const newPosition = model.getPositionAt(pending.cursorOffset);
+    editorInstance.setPosition(newPosition);
+    editorInstance.setScrollTop(pending.scrollTop);
+    editorInstance.setScrollLeft(pending.scrollLeft);
+    pendingCursorRestoreRef.current = null;
+  }, [code]);
 
   useEffect(() => {
     const editorInstance = editorInstanceRef.current;

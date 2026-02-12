@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useAtom } from "jotai";
+import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useTheme } from "next-themes";
 import type { ConsoleEntry } from "@/components/playground/preview-iframe";
 import {
@@ -22,9 +24,22 @@ interface PlaygroundProps {
   initialCode?: string;
 }
 
+const codeStorage = createJSONStorage<string>(() => localStorage);
+
+const playgroundCodeAtom = atomWithStorage<string>(
+  "playground.code",
+  DEFAULT_TSX_CODE,
+  codeStorage,
+  { getOnInit: true },
+);
+
 export function Playground({ initialCode }: PlaygroundProps) {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("horizontal");
-  const [code, setCode] = useState(initialCode ?? DEFAULT_TSX_CODE);
+  const [persistedCode, setPersistedCode] = useAtom(playgroundCodeAtom);
+  const [sharedCode, setSharedCode] = useState(initialCode ?? DEFAULT_TSX_CODE);
+  const isSharedSnippet = initialCode !== undefined;
+  const code = isSharedSnippet ? sharedCode : persistedCode;
+  const setCode = isSharedSnippet ? setSharedCode : setPersistedCode;
   const compilationResult = useTranspile(code);
   const { resolvedTheme } = useTheme();
   const theme = resolvedTheme ?? "light";
