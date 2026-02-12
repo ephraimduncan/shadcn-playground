@@ -1,5 +1,5 @@
 import { importMap } from "./modules";
-import { themeVarsCSS, tailwindThemeConfig } from "./theme";
+import { themeVarsCSS } from "./theme";
 
 export function generateIframeHTML(initialTheme: "light" | "dark"): string {
   const darkClass = initialTheme === "dark" ? ' class="dark"' : "";
@@ -14,10 +14,7 @@ export function generateIframeHTML(initialTheme: "light" | "dark"): string {
 ${importMapJSON}
 </script>
 <style>${themeVarsCSS}</style>
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-<style type="text/tailwindcss">
-${tailwindThemeConfig}
-</style>
+<style id="__tailwind"></style>
 <style>
   #__error {
     position: fixed;
@@ -161,6 +158,10 @@ window.addEventListener("message", async (e) => {
     forceUpdateRef.current?.();
     if (prevBlobUrl) { URL.revokeObjectURL(prevBlobUrl); prevBlobUrl = null; }
     return;
+  }
+
+  if (e.data.type === "tailwind-css") {
+    document.getElementById("__tailwind").textContent = e.data.css;
   }
 
   if (e.data.type === "theme") {

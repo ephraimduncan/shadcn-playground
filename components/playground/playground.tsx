@@ -16,6 +16,7 @@ import {
 import { PreviewPanel } from "@/components/playground/preview-panel";
 import { StatusBar } from "@/components/playground/status-bar";
 import { useTranspile } from "@/hooks/use-transpile";
+import { useTailwindWorker } from "@/hooks/use-tailwind-worker";
 
 interface PlaygroundProps {
   initialCode?: string;
@@ -27,6 +28,12 @@ export function Playground({ initialCode }: PlaygroundProps) {
   const compilationResult = useTranspile(code);
   const { resolvedTheme } = useTheme();
   const theme = resolvedTheme ?? "light";
+
+  const candidates =
+    compilationResult && !("error" in compilationResult)
+      ? compilationResult.candidates
+      : [];
+  const tailwindCSS = useTailwindWorker(candidates);
 
   const transpileError =
     compilationResult && "error" in compilationResult
@@ -55,6 +62,7 @@ export function Playground({ initialCode }: PlaygroundProps) {
         {layoutMode === "preview-only" ? (
           <PreviewPanel
             compilationResult={compilationResult}
+            tailwindCSS={tailwindCSS}
             transpileError={transpileError}
             theme={theme}
             runtimeError={runtimeError}
@@ -80,6 +88,7 @@ export function Playground({ initialCode }: PlaygroundProps) {
             <ResizablePanel defaultSize={65} minSize={25}>
               <PreviewPanel
                 compilationResult={compilationResult}
+                tailwindCSS={tailwindCSS}
                 transpileError={transpileError}
                 theme={theme}
                 runtimeError={runtimeError}

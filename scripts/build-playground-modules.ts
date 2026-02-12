@@ -1,7 +1,8 @@
 import { build } from "esbuild"
-import { readdirSync, writeFileSync, mkdirSync } from "fs"
+import { readdirSync, readFileSync, writeFileSync, mkdirSync } from "fs"
 import { join, dirname } from "path"
 import { fileURLToPath } from "url"
+import { extractClassCandidates } from "../lib/playground/transpile"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -78,6 +79,31 @@ async function buildBundles() {
   })
 
   console.log(`✓ utils.js`)
+
+  await build({
+    entryPoints: [join(__dirname, "..", "lib", "playground", "tailwind-worker.ts")],
+    bundle: true,
+    format: "iife",
+    outfile: join(__dirname, "..", "public", "playground", "tailwind-worker.js"),
+    target: "es2022",
+    minify: false,
+    loader: { ".css": "text" },
+    alias: {
+      "tw-animate-css": join(__dirname, "..", "node_modules", "tw-animate-css", "dist", "tw-animate.css"),
+      "shadcn/tailwind.css": join(__dirname, "..", "node_modules", "shadcn", "dist", "tailwind.css"),
+    },
+  })
+
+  console.log(`✓ tailwind-worker.js`)
+
+  const uiSource = readFileSync(join(OUT_DIR, "ui.js"), "utf-8")
+  const uiCandidates = extractClassCandidates(uiSource).sort()
+  writeFileSync(
+    join(__dirname, "..", "public", "playground", "ui-candidates.json"),
+    JSON.stringify(uiCandidates),
+  )
+
+  console.log(`✓ ui-candidates.json (${uiCandidates.length} candidates)`)
 
   const { rmSync } = await import("fs")
   rmSync(TEMP_DIR, { recursive: true, force: true })
