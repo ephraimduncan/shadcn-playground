@@ -46,3 +46,4 @@ next-env.d.ts
 .vscode
 .agents
 scripts
+!scripts/build-playground-modules.ts
