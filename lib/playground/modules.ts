@@ -1,6 +1,5 @@
 const CDN = "https://esm.sh"
 const REACT_VERSION = "19.1.0"
-const RADIX_VERSION = "1.4.3"
 
 const UI_COMPONENT_NAMES = [
   "accordion",
@@ -74,7 +73,7 @@ export const importMap = {
     "react/": `${CDN}/react@${REACT_VERSION}/`,
     "react-dom": `${CDN}/react-dom@${REACT_VERSION}`,
     "react-dom/": `${CDN}/react-dom@${REACT_VERSION}/`,
-    "radix-ui": `${CDN}/radix-ui@${RADIX_VERSION}${reactExternal}`,
+    "radix-ui": "/playground/modules/radix-ui.js",
     "lucide-react": `${CDN}/lucide-react@0.469.0${reactExternal}`,
     "@tabler/icons-react": `${CDN}/@tabler/icons-react@3.30.0${reactExternal}`,
     "class-variance-authority": `${CDN}/class-variance-authority@0.7.1`,
@@ -119,6 +118,7 @@ export function rewriteBareImports(js: string): string {
     // Base UI snippets are commonly imported via subpaths (e.g. @base-ui/react/dialog).
     // We collapse these to the pre-bundled local module for faster first render.
     if (specifier.startsWith("@base-ui/react/")) return "@base-ui/react"
+    if (specifier.startsWith("radix-ui/")) return "radix-ui"
     return specifier
   }
 

@@ -92,6 +92,29 @@ async function buildBundles() {
   console.log(`✓ base-ui.js`)
 
   await build({
+    entryPoints: ["radix-ui"],
+    bundle: true,
+    format: "esm",
+    outfile: join(OUT_DIR, "radix-ui.js"),
+    external: [
+      "react",
+      "react/*",
+      "react-dom",
+      "react-dom/*",
+      // Keep these shims external. Their npm package only ships CJS entrypoints,
+      // which otherwise emit dynamic require() in browser ESM output.
+      "use-sync-external-store",
+      "use-sync-external-store/*",
+    ],
+    target: "es2022",
+    minify: false,
+    treeShaking: true,
+    mainFields: ["module", "main"],
+  })
+
+  console.log(`✓ radix-ui.js`)
+
+  await build({
     entryPoints: [join(__dirname, "..", "lib", "utils.ts")],
     bundle: true,
     format: "esm",
