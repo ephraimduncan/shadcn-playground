@@ -18,6 +18,10 @@ import {
 import { toast } from "sonner";
 import type { TranspileError } from "@/lib/playground/transpile";
 import type { editor } from "monaco-editor";
+import {
+  MonacoJsxSyntaxHighlight,
+  getWorker,
+} from "monaco-jsx-syntax-highlight";
 import pierreDarkJson from "@/lib/playground/themes/pierre-dark.json";
 import pierreLightJson from "@/lib/playground/themes/pierre-light.json";
 
@@ -167,6 +171,7 @@ export function EditorPanel({
   const [copied, setCopied] = useState(false);
   const [isFormatting, setIsFormatting] = useState(false);
   const editorInstanceRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const jsxHighlightDisposeRef = useRef<(() => void) | null>(null);
   const handleFormatRef = useRef<() => void>(() => {});
 
   const handleFormat = useCallback(async () => {
@@ -366,12 +371,25 @@ export function EditorPanel({
                 handleFormatRef.current();
               },
             });
+
+            jsxHighlightDisposeRef.current?.();
+            const jsxHighlight = new MonacoJsxSyntaxHighlight(
+              getWorker(),
+              monaco,
+            );
+            const { highlighter, dispose } = jsxHighlight.highlighterBuilder({
+              editor: instance,
+              filePath: instance.getModel()?.uri.toString(),
+            });
+            highlighter();
+            instance.onDidChangeModelContent(() => highlighter());
+            jsxHighlightDisposeRef.current = dispose;
           }}
           options={{
             minimap: { enabled: false },
-            fontSize: 13,
+            fontSize: 14,
             fontFamily: "var(--font-geist-mono), monospace",
-            lineHeight: 20,
+            lineHeight: 22,
             padding: { top: 12 },
             scrollBeyondLastLine: false,
             renderLineHighlight: "none",
@@ -387,6 +405,7 @@ export function EditorPanel({
             tabSize: 2,
             stickyScroll: { enabled: false },
             automaticLayout: true,
+            "semanticHighlighting.enabled": false,
           }}
         />
       </div>
