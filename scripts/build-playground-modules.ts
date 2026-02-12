@@ -2,6 +2,7 @@ import { build } from "esbuild"
 import { readdirSync, readFileSync, writeFileSync, mkdirSync } from "fs"
 import { join, dirname } from "path"
 import { fileURLToPath } from "url"
+import { extractClassCandidates } from "../lib/playground/transpile"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -96,21 +97,7 @@ async function buildBundles() {
   console.log(`✓ tailwind-worker.js`)
 
   const uiSource = readFileSync(join(OUT_DIR, "ui.js"), "utf-8")
-  const singleQuoteRegex = /'([^'\\]|\\.)*'/g
-  const doubleQuoteRegex = /"([^"\\]|\\.)*"/g
-  const templateLiteralRegex = /`([^`\\]|\\.)*`/g
-  const seen = new Set<string>()
-  const allMatches = [
-    ...(uiSource.match(singleQuoteRegex) ?? []),
-    ...(uiSource.match(doubleQuoteRegex) ?? []),
-    ...(uiSource.match(templateLiteralRegex) ?? []),
-  ]
-  for (const match of allMatches) {
-    for (const token of match.slice(1, -1).split(/\s+/)) {
-      if (token) seen.add(token)
-    }
-  }
-  const uiCandidates = Array.from(seen).sort()
+  const uiCandidates = extractClassCandidates(uiSource).sort()
   writeFileSync(
     join(__dirname, "..", "public", "playground", "ui-candidates.json"),
     JSON.stringify(uiCandidates),

@@ -36,6 +36,9 @@ yarn-error.log*
 # local database
 local.db
 
+# generated playground build artifacts
+/public/playground
+
 # vercel
 .vercel
 
