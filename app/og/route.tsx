@@ -1,0 +1,115 @@
+import { ImageResponse } from "next/og";
+
+async function loadFont(): Promise<ArrayBuffer> {
+  const res = await fetch(
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap",
+  );
+  const css = await res.text();
+  const match = css.match(
+    /src: url\((.+?)\) format\('(opentype|truetype|woff2?)'\)/,
+  );
+
+  if (!match?.[1]) {
+    return new ArrayBuffer(0);
+  }
+
+  const fontRes = await fetch(match[1]);
+  return fontRes.arrayBuffer();
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const title = searchParams.get("title") ?? "shadcn/play";
+  const description =
+    searchParams.get("description") ??
+    "Interactive playground for shadcn/ui components";
+
+  const fontData = await loadFont();
+
+  return new ImageResponse(
+    <div
+      tw="flex h-full w-full bg-black text-white"
+      style={{ fontFamily: "Inter" }}
+    >
+      <div tw="flex border absolute border-stone-700 border-dashed inset-y-0 left-16 w-[1px]" />
+      <div tw="flex border absolute border-stone-700 border-dashed inset-y-0 right-16 w-[1px]" />
+      <div tw="flex border absolute border-stone-700 inset-x-0 h-[1px] top-16" />
+      <div tw="flex border absolute border-stone-700 inset-x-0 h-[1px] bottom-16" />
+
+      <div tw="flex absolute flex-row bottom-24 right-24 text-white">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 256 256"
+          width={48}
+          height={48}
+          role="img"
+          aria-label="shadcn logo"
+        >
+          <title>shadcn logo</title>
+          <rect width="256" height="256" fill="none" />
+          <line
+            x1="208"
+            y1="128"
+            x2="128"
+            y2="208"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="32"
+          />
+          <line
+            x1="192"
+            y1="40"
+            x2="40"
+            y2="192"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="32"
+          />
+        </svg>
+      </div>
+
+      <div tw="flex flex-col absolute w-[896px] justify-center inset-32">
+        <div
+          tw="flex flex-col justify-center flex-grow"
+          style={{
+            textWrap: "balance",
+            fontWeight: 600,
+            fontSize: title.length > 20 ? 64 : 80,
+            letterSpacing: "-0.04em",
+            lineHeight: 1.1,
+          }}
+        >
+          {title}
+        </div>
+        <div
+          tw="text-[36px] text-stone-400 flex-grow"
+          style={{
+            fontWeight: 400,
+            textWrap: "balance",
+            lineHeight: 1.4,
+          }}
+        >
+          {description}
+        </div>
+      </div>
+    </div>,
+    {
+      width: 1200,
+      height: 628,
+      fonts: fontData.byteLength
+        ? [
+            {
+              name: "Inter",
+              data: fontData,
+              weight: 400 as const,
+              style: "normal" as const,
+            },
+          ]
+        : undefined,
+    },
+  );
+}
