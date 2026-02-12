@@ -24,7 +24,7 @@ interface PlaygroundProps {
   initialCode?: string;
 }
 
-const codeStorage = createJSONStorage<string>(() => localStorage);
+const codeStorage = createJSONStorage<string>(() => globalThis.localStorage);
 
 const playgroundCodeAtom = atomWithStorage<string>(
   "playground.code",
