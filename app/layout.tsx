@@ -71,6 +71,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
+        {process.env.NODE_ENV === "production" && (
+          <Script
+            defer
+            src="https://analytics.duncan.land/script.js"
+            data-website-id="c86b44a0-6108-4435-a46b-5cf880d165fa"
+            strategy="afterInteractive"
+          />
+        )}
         {process.env.NODE_ENV === "development" && (
           <>
             <Script
