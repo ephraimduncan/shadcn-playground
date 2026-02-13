@@ -27,13 +27,6 @@ export async function POST(request: Request) {
     );
   }
 
-  if (typeof globalCss !== "undefined" && typeof globalCss !== "string") {
-    return NextResponse.json(
-      { error: "globalCss must be a string" },
-      { status: 400 },
-    );
-  }
-
   if (typeof globalCss === "string" && globalCss.length > MAX_GLOBAL_CSS_SIZE) {
     return NextResponse.json(
       { error: "globalCss exceeds 100KB limit" },

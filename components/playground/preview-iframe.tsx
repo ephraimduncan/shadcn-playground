@@ -78,7 +78,10 @@ export function PreviewIframe({
         pendingGlobalCSSRef.current = processedCSS;
         return;
       }
-      iframe.contentWindow.postMessage({ type: "theme-css", css: processedCSS }, "*");
+      iframe.contentWindow.postMessage(
+        { type: "theme-css", css: processedCSS },
+        "*",
+      );
     },
     [iframeReady],
   );
@@ -114,14 +117,6 @@ export function PreviewIframe({
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
   }, [onRuntimeError, onStatusChange, onConsoleMessage]);
-
-  useEffect(() => {
-    if (!iframeReady) return;
-    if (pendingCodeRef.current) {
-      sendCode(pendingCodeRef.current);
-      pendingCodeRef.current = null;
-    }
-  }, [iframeReady, sendCode]);
 
   useEffect(() => {
     if (!compilationResult) {

@@ -5,7 +5,8 @@ const UNSAFE_IFRAME_IMPORTS = new Set([
   "shadcn/tailwind.css",
 ]);
 
-const UNSAFE_IFRAME_IMPORT_RE = /^\s*@import\s+(?:url\()?\s*["']?([^"'\s)]+)["']?(?:\)\s*)?;?\s*$/i;
+const UNSAFE_IFRAME_IMPORT_RE =
+  /^\s*@import\s+(?:url\()?\s*["']?([^"'\s)]+)["']?(?:\)\s*)?;?\s*$/i;
 
 const GENERIC_FONT_FAMILIES = new Set([
   "serif",
@@ -36,30 +37,35 @@ const GENERIC_FONT_FAMILIES = new Set([
   "lucida grande",
   "tahoma",
   "geneva",
-  "sans-serif",
 ]);
 
 function stripFontQuotes(value: string): string {
   const trimmed = value.trim();
-  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
     return trimmed.slice(1, -1).trim();
   }
   return trimmed;
 }
 
 function sanitizeFontName(value: string): string {
-  const trimmed = stripFontQuotes(value.trim().replace(/\s*!important$/i, "").trim());
+  const trimmed = stripFontQuotes(
+    value
+      .trim()
+      .replace(/\s*!important$/i, "")
+      .trim(),
+  );
 
   if (!trimmed) return "";
   if (trimmed.startsWith("var(")) return "";
-  if (trimmed.startsWith("url(")) return "";
   if (trimmed.includes(")")) return "";
-  if (trimmed.startsWith("local(")) return "";
-  if (trimmed.toLowerCase().startsWith("format(")) return "";
 
   const normalized = trimmed.toLowerCase();
   if (GENERIC_FONT_FAMILIES.has(normalized)) return "";
-  if (trimmed === "inherit" || trimmed === "initial" || trimmed === "unset") return "";
+  if (trimmed === "inherit" || trimmed === "initial" || trimmed === "unset")
+    return "";
   if (!/[a-zA-Z]/.test(trimmed)) return "";
 
   return trimmed;
@@ -133,10 +139,7 @@ function parseFontImports(css: string): Set<string> {
       const params = new URL(rawUrl).searchParams;
       const importedFamilies = params.getAll("family");
       for (const rawFamily of importedFamilies) {
-        const decoded = rawFamily
-          .split(":")[0]
-          .replace(/\+/g, " ")
-          .trim();
+        const decoded = rawFamily.split(":")[0].replace(/\+/g, " ").trim();
         if (decoded) families.add(decoded.toLowerCase());
       }
     } catch {
@@ -168,8 +171,7 @@ export function extractFontFamilyNamesFromCSS(css: string): string[] {
   const source = stripComments(css);
   const fontNames = new Set<string>();
 
-  const variableRegex =
-    /--font-(?:sans|serif|mono)\s*:\s*([^;]+);/gi;
+  const variableRegex = /--font-(?:sans|serif|mono)\s*:\s*([^;]+);/gi;
   const fontFamilyRegex = /font-family\s*:\s*([^;]+);/gi;
 
   for (const match of source.matchAll(variableRegex)) {
