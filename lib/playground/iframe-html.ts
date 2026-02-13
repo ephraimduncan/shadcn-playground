@@ -14,6 +14,7 @@ const LOCAL_PRELOADS = [
   "/playground/modules/tailwind-merge.js",
   "/playground/modules/cva.js",
   "/playground/modules/base-ui.js",
+  "/playground/modules/next-link.js",
   "/playground/modules/use-sync-external-store-shim.js",
 ];
 

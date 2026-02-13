@@ -99,6 +99,7 @@ export const importMap = {
     "react-resizable-panels": `${CDN}/react-resizable-panels@4.6.2${reactExternal}`,
     "next-themes": `${CDN}/next-themes@0.4.6${reactExternal}`,
     "@base-ui/react": "/playground/modules/base-ui.js",
+    "next/link": "/playground/modules/next-link.js",
     "@/lib/utils": "/playground/modules/utils.js",
     ...uiImportEntries,
   },
