@@ -52,6 +52,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { Tooltip as RadixTooltip } from "radix-ui";
 
+const TooltipProvider = RadixTooltip.Provider || RadixTooltip.TooltipProvider;
 const root = createRoot(document.getElementById("root"));
 let prevBlobUrl = null;
 
@@ -95,15 +96,10 @@ class ErrorBoundary extends React.Component {
 function AppShell() {
   const [, forceUpdate] = React.useReducer(x => x + 1, 0);
   forceUpdateRef.current = forceUpdate;
-  const RadixTooltipProvider =
-    RadixTooltip.Provider || RadixTooltip.TooltipProvider;
+  if (!latestComp) return null;
   const content = React.createElement(latestComp);
-
-  return latestComp
-    ? RadixTooltipProvider
-      ? React.createElement(RadixTooltipProvider, null, content)
-      : content
-    : null;
+  if (!TooltipProvider) return content;
+  return React.createElement(TooltipProvider, null, content);
 }
 
 function showError(msg) {

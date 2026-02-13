@@ -171,22 +171,15 @@ export function extractFontFamilyNamesFromCSS(css: string): string[] {
   const source = stripComments(css);
   const fontNames = new Set<string>();
 
-  const variableRegex = /--font-(?:sans|serif|mono)\s*:\s*([^;]+);/gi;
-  const fontFamilyRegex = /font-family\s*:\s*([^;]+);/gi;
+  const patterns = [
+    /--font-(?:sans|serif|mono)\s*:\s*([^;]+);/gi,
+    /font-family\s*:\s*([^;]+);/gi,
+  ];
 
-  for (const match of source.matchAll(variableRegex)) {
-    const raw = match[1];
-    const name = extractFontFromDeclaration(raw);
-    if (name) {
-      fontNames.add(name);
-    }
-  }
-
-  for (const match of source.matchAll(fontFamilyRegex)) {
-    const raw = match[1];
-    const name = extractFontFromDeclaration(raw);
-    if (name) {
-      fontNames.add(name);
+  for (const regex of patterns) {
+    for (const match of source.matchAll(regex)) {
+      const name = extractFontFromDeclaration(match[1]);
+      if (name) fontNames.add(name);
     }
   }
 
