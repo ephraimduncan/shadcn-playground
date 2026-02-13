@@ -257,6 +257,22 @@ async function buildBundles() {
   )
 
   writeFileSync(
+    join(OUT_DIR, "next-link.js"),
+    [
+      'import React from "react";',
+      "const Link = React.forwardRef(function Link(props, ref) {",
+      "  const { href, children, ...rest } = props;",
+      '  return React.createElement("a", { ...rest, href, ref }, children);',
+      "});",
+      'Link.displayName = "Link";',
+      "export default Link;",
+      "",
+    ].join("\n"),
+  )
+
+  console.log(`✓ next-link.js`)
+
+  writeFileSync(
     join(OUT_DIR, "use-sync-external-store-with-selector.js"),
     [
       'import { useSyncExternalStore, useRef, useMemo } from "react";',
@@ -282,22 +298,6 @@ async function buildBundles() {
   )
 
   console.log(`✓ use-sync-external-store shims`)
-
-  writeFileSync(
-    join(OUT_DIR, "next-link.js"),
-    [
-      'import React from "react";',
-      "const Link = React.forwardRef(function Link(props, ref) {",
-      "  const { href, children, ...rest } = props;",
-      '  return React.createElement("a", { ...rest, href, ref }, children);',
-      "});",
-      'Link.displayName = "Link";',
-      "export default Link;",
-      "",
-    ].join("\n"),
-  )
-
-  console.log(`✓ next-link.js`)
 
   await build({
     entryPoints: [join(__dirname, "..", "lib", "playground", "tailwind-worker.ts")],

@@ -848,9 +848,12 @@ export function EditorPanel({
   }, [activeCode, activeFilename]);
 
   const handleReset = useCallback(() => {
-    onReset?.();
-    onGlobalReset();
-  }, [onReset, onGlobalReset]);
+    if (isComponentTab) {
+      onReset?.();
+    } else {
+      onGlobalReset();
+    }
+  }, [isComponentTab, onReset, onGlobalReset]);
 
   return (
     <div className="flex h-full flex-col bg-background">
