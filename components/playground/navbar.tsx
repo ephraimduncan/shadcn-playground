@@ -26,9 +26,10 @@ interface NavbarProps {
   layoutMode: LayoutMode;
   onLayoutModeChange: (mode: LayoutMode) => void;
   code: string;
+  globalCode: string;
 }
 
-export function Navbar({ layoutMode, onLayoutModeChange, code }: NavbarProps) {
+export function Navbar({ layoutMode, onLayoutModeChange, code, globalCode }: NavbarProps) {
   const { theme, setTheme } = useTheme();
   const [isSharing, setIsSharing] = useState(false);
 
@@ -39,7 +40,7 @@ export function Navbar({ layoutMode, onLayoutModeChange, code }: NavbarProps) {
       const res = await fetch("/api/share", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code, globalCss: globalCode }),
       });
 
       if (!res.ok) {
@@ -58,7 +59,7 @@ export function Navbar({ layoutMode, onLayoutModeChange, code }: NavbarProps) {
     } finally {
       setIsSharing(false);
     }
-  }, [code]);
+  }, [code, globalCode]);
 
   return (
     <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-background px-4">

@@ -25,6 +25,7 @@ import {
 } from "monaco-jsx-syntax-highlight";
 import pierreDarkJson from "@/lib/playground/themes/pierre-dark.json";
 import pierreLightJson from "@/lib/playground/themes/pierre-light.json";
+import { DEFAULT_GLOBALS_CSS } from "@/lib/playground/theme";
 
 export const DEFAULT_TSX_CODE = `import { Example, ExampleWrapper } from "@/components/ui/example";
 import {
@@ -106,12 +107,17 @@ export function ComponentExample() {
   );
 }`;
 
+type EditorTab = "component.tsx" | "globals.css";
+
 interface EditorPanelProps {
   code: string;
   onCodeChange: (code: string) => void;
+  globalCode: string;
+  onGlobalCodeChange: (code: string) => void;
   error?: TranspileError | null;
   runtimeError?: string;
   onReset?: () => void;
+  onGlobalReset?: () => void;
 }
 
 function findIdentifierInSource(
@@ -153,7 +159,6 @@ function findIdentifierInSource(
 }
 
 const PRETTIER_OPTIONS = {
-  parser: "babel-ts" as const,
   semi: true,
   singleQuote: false,
   printWidth: 80,
@@ -164,14 +169,19 @@ const PRETTIER_OPTIONS = {
 export function EditorPanel({
   code,
   onCodeChange,
+  globalCode,
+  onGlobalCodeChange,
   error,
   runtimeError,
   onReset,
+  onGlobalReset = () => onGlobalCodeChange(DEFAULT_GLOBALS_CSS),
 }: EditorPanelProps) {
   const { resolvedTheme } = useTheme();
   const [copied, setCopied] = useState(false);
   const [isFormatting, setIsFormatting] = useState(false);
+  const [activeTab, setActiveTab] = useState<EditorTab>("component.tsx");
   const editorInstanceRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
   const jsxHighlightDisposeRef = useRef<(() => void) | null>(null);
   const handleFormatRef = useRef<() => void>(() => {});
   const pendingCursorRestoreRef = useRef<{
@@ -180,40 +190,75 @@ export function EditorPanel({
     scrollLeft: number;
     formattedCode: string;
   } | null>(null);
+  const [isEditorReady, setIsEditorReady] = useState(false);
+
+  const isComponentTab = activeTab === "component.tsx";
+  const activeCode = isComponentTab ? code : globalCode;
+  const activeLanguage = isComponentTab ? "typescript" : "css";
+  const activePath = isComponentTab
+    ? "file:///component.tsx"
+    : "file:///globals.css";
+  const activeFilename = isComponentTab ? "component.tsx" : "globals.css";
 
   const handleFormat = useCallback(async () => {
-    if (isFormatting || !code.trim()) return;
+    if (isFormatting || !activeCode.trim()) return;
 
     setIsFormatting(true);
     try {
-      const [prettier, babel, estree] = await Promise.all([
-        import("prettier/standalone"),
-        import("prettier/plugins/babel"),
-        import("prettier/plugins/estree"),
-      ]);
-
       const editorInstance = editorInstanceRef.current;
       const model = editorInstance?.getModel();
       const position = editorInstance?.getPosition();
       const cursorOffset = model && position ? model.getOffsetAt(position) : 0;
       const scrollTop = editorInstance?.getScrollTop() ?? 0;
 
-      const result = await prettier.formatWithCursor(code, {
-        cursorOffset,
-        plugins: [babel, estree],
-        ...PRETTIER_OPTIONS,
-      });
+      if (isComponentTab) {
+        const [prettier, babel, estree] = await Promise.all([
+          import("prettier/standalone"),
+          import("prettier/plugins/babel"),
+          import("prettier/plugins/estree"),
+        ]);
 
-      if (editorInstance && model) {
-        pendingCursorRestoreRef.current = {
-          cursorOffset: result.cursorOffset,
-          scrollTop,
-          scrollLeft: editorInstance.getScrollLeft(),
-          formattedCode: result.formatted,
-        };
+        const result = await prettier.formatWithCursor(activeCode, {
+          cursorOffset,
+          plugins: [babel, estree],
+          parser: "babel-ts",
+          ...PRETTIER_OPTIONS,
+        });
+
+        if (editorInstance && model) {
+          pendingCursorRestoreRef.current = {
+            cursorOffset: result.cursorOffset,
+            scrollTop,
+            scrollLeft: editorInstance.getScrollLeft(),
+            formattedCode: result.formatted,
+          };
+        }
+
+        onCodeChange(result.formatted);
+      } else {
+        const [prettier, postcss] = await Promise.all([
+          import("prettier/standalone"),
+          import("prettier/plugins/postcss"),
+        ]);
+
+        const result = await prettier.formatWithCursor(activeCode, {
+          cursorOffset,
+          plugins: [postcss],
+          parser: "css",
+          ...PRETTIER_OPTIONS,
+        });
+
+        if (editorInstance && model) {
+          pendingCursorRestoreRef.current = {
+            cursorOffset: result.cursorOffset,
+            scrollTop,
+            scrollLeft: editorInstance.getScrollLeft(),
+            formattedCode: result.formatted,
+          };
+        }
+
+        onGlobalCodeChange(result.formatted);
       }
-
-      onCodeChange(result.formatted);
 
       toast.success("Formatted");
     } catch (err) {
@@ -222,14 +267,20 @@ export function EditorPanel({
     } finally {
       setIsFormatting(false);
     }
-  }, [code, isFormatting, onCodeChange]);
+  }, [
+    activeCode,
+    isComponentTab,
+    isFormatting,
+    onCodeChange,
+    onGlobalCodeChange,
+  ]);
 
   handleFormatRef.current = handleFormat;
 
   useEffect(() => {
     const pending = pendingCursorRestoreRef.current;
     if (!pending) return;
-    if (pending.formattedCode !== code) return;
+    if (pending.formattedCode !== activeCode) return;
 
     const editorInstance = editorInstanceRef.current;
     const model = editorInstance?.getModel();
@@ -242,7 +293,7 @@ export function EditorPanel({
     editorInstance.setScrollTop(pending.scrollTop);
     editorInstance.setScrollLeft(pending.scrollLeft);
     pendingCursorRestoreRef.current = null;
-  }, [code]);
+  }, [activeCode]);
 
   useEffect(() => {
     const editorInstance = editorInstanceRef.current;
@@ -250,12 +301,15 @@ export function EditorPanel({
     const model = editorInstance.getModel();
     if (!model) return;
 
-    const monaco = (
-      window as unknown as { monaco: typeof import("monaco-editor") }
-    ).monaco;
+    const monaco = monacoRef.current;
     if (!monaco) return;
 
     const markers: Parameters<typeof monaco.editor.setModelMarkers>[2] = [];
+
+    if (!isComponentTab) {
+      monaco.editor.setModelMarkers(model, "playground", markers);
+      return;
+    }
 
     if (error) {
       markers.push({
@@ -292,7 +346,38 @@ export function EditorPanel({
     }
 
     monaco.editor.setModelMarkers(model, "playground", markers);
-  }, [error, runtimeError, code]);
+  }, [error, runtimeError, isComponentTab, code]);
+
+  useEffect(() => {
+    if (!isEditorReady) return;
+    const editorInstance = editorInstanceRef.current;
+    const monaco = monacoRef.current;
+    if (!editorInstance || !monaco) return;
+
+    if (!isComponentTab) {
+      jsxHighlightDisposeRef.current?.();
+      jsxHighlightDisposeRef.current = null;
+      return;
+    }
+
+    const jsxHighlight = new MonacoJsxSyntaxHighlight(getWorker(), monaco);
+    const { highlighter, dispose } = jsxHighlight.highlighterBuilder({
+      editor: editorInstance,
+      filePath: editorInstance.getModel()?.uri.toString(),
+    });
+    highlighter();
+    const disposeListener = editorInstance.onDidChangeModelContent(() => highlighter());
+
+    jsxHighlightDisposeRef.current = () => {
+      disposeListener.dispose();
+      dispose();
+    };
+
+    return () => {
+      jsxHighlightDisposeRef.current?.();
+      jsxHighlightDisposeRef.current = null;
+    };
+  }, [isComponentTab, isEditorReady]);
 
   const handleBeforeMount: BeforeMount = useCallback((monaco) => {
     function defineVscodeTheme(name: string, json: typeof pierreDarkJson) {
@@ -331,16 +416,47 @@ export function EditorPanel({
   }, []);
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(code);
+    navigator.clipboard.writeText(activeCode);
     setCopied(true);
-    toast.success("Copied to clipboard");
+    toast.success(`${activeFilename} copied to clipboard`);
     setTimeout(() => setCopied(false), 2000);
-  }, [code]);
+  }, [activeCode, activeFilename]);
+
+  const handleReset = useCallback(() => {
+    if (isComponentTab) {
+      onReset?.();
+    } else {
+      onGlobalReset();
+    }
+  }, [isComponentTab, onReset, onGlobalReset]);
 
   return (
     <div className="flex h-full flex-col bg-background">
-      <div className="flex h-10 shrink-0 items-center justify-between border-b border-border px-3">
-        <span className="text-xs text-muted-foreground">component.tsx</span>
+      <div className="flex h-10 shrink-0 items-center justify-between border-b border-border pr-3">
+        <div className="flex h-full">
+          <button
+            type="button"
+            onClick={() => setActiveTab("component.tsx")}
+            className={`inline-flex h-full items-center px-3 text-xs font-medium leading-none transition-colors ${
+              isComponentTab
+                ? "bg-background text-foreground border-b-2 border-primary font-semibold"
+                : "bg-background/80 text-muted-foreground hover:bg-background border-b-2 border-transparent"
+            }`}
+          >
+            component.tsx
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("globals.css")}
+            className={`inline-flex h-full items-center px-3 text-xs font-medium leading-none transition-colors ${
+              isComponentTab
+                ? "bg-background/80 text-muted-foreground hover:bg-background border-b-2 border-transparent"
+                : "bg-background text-foreground border-b-2 border-primary font-semibold"
+            }`}
+          >
+            globals.css
+          </button>
+        </div>
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -348,7 +464,7 @@ export function EditorPanel({
                 variant="ghost"
                 size="icon-sm"
                 onClick={handleCopy}
-                aria-label="Copy code"
+                aria-label={`Copy ${activeFilename}`}
               >
                 {copied ? (
                   <IconCheck className="size-3.5 text-emerald-500" />
@@ -357,30 +473,28 @@ export function EditorPanel({
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Copy code</TooltipContent>
+            <TooltipContent>{`Copy ${activeFilename}`}</TooltipContent>
           </Tooltip>
-          {onReset && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={onReset}
-                  aria-label="Reset to default"
-                >
-                  <IconRotate className="size-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Reset to default</TooltipContent>
-            </Tooltip>
-          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Format code"
+                onClick={handleReset}
+                aria-label={`Reset ${activeFilename}`}
+              >
+                <IconRotate className="size-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{`Reset ${activeFilename}`}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 onClick={handleFormat}
+                aria-label="Format code"
                 disabled={isFormatting}
               >
                 {isFormatting ? (
@@ -398,14 +512,22 @@ export function EditorPanel({
       <div className="flex-1 min-h-0">
         <Editor
           height="100%"
-          language="typescript"
-          path="file:///component.tsx"
+          language={activeLanguage}
+          path={activePath}
           theme={resolvedTheme === "dark" ? "pierre-dark" : "pierre-light"}
-          value={code}
-          onChange={(value) => onCodeChange(value ?? "")}
+          value={activeCode}
+          onChange={(value) => {
+            const next = value ?? "";
+            if (isComponentTab) {
+              onCodeChange(next);
+            } else {
+              onGlobalCodeChange(next);
+            }
+          }}
           beforeMount={handleBeforeMount}
           onMount={(instance, monaco) => {
             editorInstanceRef.current = instance;
+            monacoRef.current = monaco;
             instance.addAction({
               id: "format-document",
               label: "Format Document",
@@ -414,19 +536,6 @@ export function EditorPanel({
                 handleFormatRef.current();
               },
             });
-
-            jsxHighlightDisposeRef.current?.();
-            const jsxHighlight = new MonacoJsxSyntaxHighlight(
-              getWorker(),
-              monaco,
-            );
-            const { highlighter, dispose } = jsxHighlight.highlighterBuilder({
-              editor: instance,
-              filePath: instance.getModel()?.uri.toString(),
-            });
-            highlighter();
-            instance.onDidChangeModelContent(() => highlighter());
-            jsxHighlightDisposeRef.current = dispose;
 
             if ("fonts" in document) {
               void document.fonts
@@ -437,6 +546,7 @@ export function EditorPanel({
                 })
                 .catch(() => undefined);
             }
+            setIsEditorReady(true);
           }}
           options={{
             minimap: { enabled: false },

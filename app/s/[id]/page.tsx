@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db";
 import { snippets } from "@/lib/db/schema";
 import { Playground } from "@/components/playground/playground";
 import { siteConfig } from "@/lib/config";
+import { DEFAULT_GLOBALS_CSS } from "@/lib/playground/theme";
 
 async function getSnippet(id: string) {
   return getDb().query.snippets.findFirst({
@@ -65,5 +66,10 @@ export default async function SharedSnippetPage({
 
   if (!snippet) notFound();
 
-  return <Playground initialCode={snippet.code} />;
+  return (
+    <Playground
+      initialCode={snippet.code}
+      initialGlobalCSS={snippet.globalCss ?? DEFAULT_GLOBALS_CSS}
+    />
+  );
 }

@@ -1,5 +1,5 @@
 import { importMap } from "./modules";
-import { themeVarsCSS } from "./theme";
+import { DEFAULT_GLOBALS_CSS } from "./theme";
 
 export function generateIframeHTML(initialTheme: "light" | "dark"): string {
   const darkClass = initialTheme === "dark" ? ' class="dark"' : "";
@@ -13,7 +13,7 @@ export function generateIframeHTML(initialTheme: "light" | "dark"): string {
 <script type="importmap">
 ${importMapJSON}
 </script>
-<style>${themeVarsCSS}</style>
+<style id="__globals-css">${DEFAULT_GLOBALS_CSS}</style>
 <style id="__tailwind"></style>
 <style>
   #__error {
@@ -162,6 +162,13 @@ window.addEventListener("message", async (e) => {
 
   if (e.data.type === "tailwind-css") {
     document.getElementById("__tailwind").textContent = e.data.css;
+  }
+
+  if (e.data.type === "theme-css") {
+    const globalsCSS = document.getElementById("__globals-css");
+    if (globalsCSS) {
+      globalsCSS.textContent = e.data.css;
+    }
   }
 
   if (e.data.type === "theme") {

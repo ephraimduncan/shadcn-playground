@@ -19,9 +19,11 @@ import { PreviewPanel } from "@/components/playground/preview-panel";
 import { StatusBar } from "@/components/playground/status-bar";
 import { useTranspile } from "@/hooks/use-transpile";
 import { useTailwindWorker } from "@/hooks/use-tailwind-worker";
+import { DEFAULT_GLOBALS_CSS } from "@/lib/playground/theme";
 
 interface PlaygroundProps {
   initialCode?: string;
+  initialGlobalCSS?: string;
 }
 
 const codeStorage = createJSONStorage<string>(() => globalThis.localStorage);
@@ -33,13 +35,30 @@ const playgroundCodeAtom = atomWithStorage<string>(
   { getOnInit: true },
 );
 
-export function Playground({ initialCode }: PlaygroundProps) {
+const playgroundGlobalCSSAtom = atomWithStorage<string>(
+  "playground.globalCSS",
+  DEFAULT_GLOBALS_CSS,
+  codeStorage,
+  { getOnInit: true },
+);
+
+export function Playground({ initialCode, initialGlobalCSS }: PlaygroundProps) {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("horizontal");
   const [persistedCode, setPersistedCode] = useAtom(playgroundCodeAtom);
+  const [persistedGlobalCSS, setPersistedGlobalCSS] =
+    useAtom(playgroundGlobalCSSAtom);
   const [sharedCode, setSharedCode] = useState(initialCode ?? DEFAULT_TSX_CODE);
-  const isSharedSnippet = initialCode !== undefined;
+  const [sharedGlobalCSS, setSharedGlobalCSS] = useState(
+    initialGlobalCSS ?? DEFAULT_GLOBALS_CSS,
+  );
+  const isSharedSnippet =
+    initialCode !== undefined || initialGlobalCSS !== undefined;
   const code = isSharedSnippet ? sharedCode : persistedCode;
   const setCode = isSharedSnippet ? setSharedCode : setPersistedCode;
+  const globalCSS = isSharedSnippet ? sharedGlobalCSS : persistedGlobalCSS;
+  const setGlobalCSS = isSharedSnippet
+    ? setSharedGlobalCSS
+    : setPersistedGlobalCSS;
   const compilationResult = useTranspile(code);
   const { resolvedTheme } = useTheme();
   const theme = resolvedTheme ?? "light";
@@ -71,6 +90,7 @@ export function Playground({ initialCode }: PlaygroundProps) {
         layoutMode={layoutMode}
         onLayoutModeChange={setLayoutMode}
         code={code}
+        globalCode={globalCSS}
       />
 
       <div className="flex-1 min-h-0">
@@ -78,6 +98,7 @@ export function Playground({ initialCode }: PlaygroundProps) {
           <PreviewPanel
             compilationResult={compilationResult}
             tailwindCSS={tailwindCSS}
+            globalCSS={globalCSS}
             transpileError={transpileError}
             theme={theme}
             runtimeError={runtimeError}
@@ -92,9 +113,12 @@ export function Playground({ initialCode }: PlaygroundProps) {
               <EditorPanel
                 code={code}
                 onCodeChange={setCode}
+                globalCode={globalCSS}
+                onGlobalCodeChange={setGlobalCSS}
                 error={transpileError}
                 runtimeError={runtimeError}
                 onReset={() => setCode(DEFAULT_TSX_CODE)}
+                onGlobalReset={() => setGlobalCSS(DEFAULT_GLOBALS_CSS)}
               />
             </ResizablePanel>
             <ResizableHandle
@@ -105,6 +129,7 @@ export function Playground({ initialCode }: PlaygroundProps) {
               <PreviewPanel
                 compilationResult={compilationResult}
                 tailwindCSS={tailwindCSS}
+                globalCSS={globalCSS}
                 transpileError={transpileError}
                 theme={theme}
                 runtimeError={runtimeError}

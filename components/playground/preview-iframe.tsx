@@ -16,6 +16,7 @@ export type ConsoleEntry = {
 interface PreviewIframeProps {
   compilationResult: TranspileResult | null;
   tailwindCSS: string | null;
+  globalCSS: string;
   theme: string;
   onRuntimeError: (message: string) => void;
   onStatusChange: (status: PreviewStatus) => void;
@@ -25,6 +26,7 @@ interface PreviewIframeProps {
 export function PreviewIframe({
   compilationResult,
   tailwindCSS,
+  globalCSS,
   theme,
   onRuntimeError,
   onStatusChange,
@@ -34,6 +36,7 @@ export function PreviewIframe({
   const [iframeReady, setIframeReady] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pendingCodeRef = useRef<string | null>(null);
+  const pendingGlobalCSSRef = useRef<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -63,6 +66,19 @@ export function PreviewIframe({
       iframe.contentWindow.postMessage({ type: "code", js }, "*");
     },
     [iframeReady, onStatusChange],
+  );
+
+  const sendGlobalCSS = useCallback(
+    (css: string) => {
+      const iframe = iframeRef.current;
+      if (!iframe?.contentWindow) return;
+      if (!iframeReady) {
+        pendingGlobalCSSRef.current = css;
+        return;
+      }
+      iframe.contentWindow.postMessage({ type: "theme-css", css }, "*");
+    },
+    [iframeReady],
   );
 
   useEffect(() => {
@@ -127,6 +143,23 @@ export function PreviewIframe({
     iframeReady,
     onRuntimeError,
   ]);
+
+  useEffect(() => {
+    if (!iframeReady) return;
+    sendGlobalCSS(globalCSS);
+  }, [globalCSS, sendGlobalCSS, iframeReady]);
+
+  useEffect(() => {
+    if (!iframeReady) return;
+    if (pendingCodeRef.current) {
+      sendCode(pendingCodeRef.current);
+      pendingCodeRef.current = null;
+    }
+    if (pendingGlobalCSSRef.current !== null) {
+      sendGlobalCSS(pendingGlobalCSSRef.current);
+      pendingGlobalCSSRef.current = null;
+    }
+  }, [iframeReady, sendCode, sendGlobalCSS]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
