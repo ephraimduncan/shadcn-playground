@@ -2,6 +2,25 @@ import { importMap } from "./modules";
 import { DEFAULT_GLOBALS_CSS } from "./theme";
 import { sanitizeGlobalCSSForPreview } from "./google-fonts";
 
+const LOCAL_PRELOADS = [
+  "/playground/modules/react.js",
+  "/playground/modules/react-jsx-runtime.js",
+  "/playground/modules/react-dom.js",
+  "/playground/modules/react-dom-client.js",
+  "/playground/modules/radix-ui.js",
+  "/playground/modules/ui.js",
+  "/playground/modules/utils.js",
+  "/playground/modules/clsx.js",
+  "/playground/modules/tailwind-merge.js",
+  "/playground/modules/cva.js",
+  "/playground/modules/base-ui.js",
+  "/playground/modules/use-sync-external-store-shim.js",
+];
+
+const preloadTags = LOCAL_PRELOADS.map(
+  (href) => `<link rel="modulepreload" href="${href}" />`,
+).join("\n");
+
 export function generateIframeHTML(initialTheme: "light" | "dark"): string {
   const darkClass = initialTheme === "dark" ? ' class="dark"' : "";
   const importMapJSON = JSON.stringify(importMap, null, 2);
@@ -14,6 +33,7 @@ export function generateIframeHTML(initialTheme: "light" | "dark"): string {
 <script type="importmap">
 ${importMapJSON}
 </script>
+${preloadTags}
 <style id="__globals-css">${sanitizeGlobalCSSForPreview(DEFAULT_GLOBALS_CSS)}</style>
 <style id="__tailwind"></style>
 <style>

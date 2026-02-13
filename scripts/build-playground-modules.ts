@@ -46,6 +46,35 @@ const EXTERNALS = [
   "@/lib/utils",
 ]
 
+function patchRequireReact(filePath: string) {
+  let source = readFileSync(filePath, "utf-8")
+  if (source.includes("__require")) {
+    source = source
+      .replace(/var __require =[\s\S]*?\n\}\);?\n/, "")
+      .replace(/__require\("react"\)/g, "__injected_react")
+    source = 'import __injected_react from "react";\n' + source
+    writeFileSync(filePath, source)
+  }
+}
+
+function addNamedReexports(filePath: string, moduleId: string) {
+  const mod = require(moduleId)
+  const names = Object.keys(mod).filter(
+    (k) => k !== "default" && k !== "__esModule" && /^[a-zA-Z_$][\w$]*$/.test(k),
+  )
+  if (names.length === 0) return
+  let source = readFileSync(filePath, "utf-8")
+  const match = source.match(/^export default ([\w$]+)\(\);?\s*$/m)
+  if (!match) return
+  const fnName = match[1]
+  const reExports = names.map((n) => `export var ${n} = __mod.${n};`).join("\n")
+  source = source.replace(
+    match[0],
+    `var __mod = ${fnName}();\nexport default __mod;\n${reExports}`,
+  )
+  writeFileSync(filePath, source)
+}
+
 async function buildBundles() {
   console.log(`Bundling ${uiFiles.length} UI components...`)
 
@@ -125,6 +154,134 @@ async function buildBundles() {
   })
 
   console.log(`✓ utils.js`)
+
+  await build({
+    entryPoints: ["react"],
+    bundle: true,
+    format: "esm",
+    outfile: join(OUT_DIR, "react.js"),
+    target: "es2022",
+    platform: "browser",
+    define: { "process.env.NODE_ENV": '"production"' },
+    minify: false,
+    treeShaking: true,
+  })
+
+  addNamedReexports(join(OUT_DIR, "react.js"), "react")
+  console.log(`✓ react.js`)
+
+  await build({
+    entryPoints: ["react/jsx-runtime"],
+    bundle: true,
+    format: "esm",
+    outfile: join(OUT_DIR, "react-jsx-runtime.js"),
+    external: ["react"],
+    target: "es2022",
+    platform: "browser",
+    define: { "process.env.NODE_ENV": '"production"' },
+    minify: false,
+  })
+
+  addNamedReexports(join(OUT_DIR, "react-jsx-runtime.js"), "react/jsx-runtime")
+  console.log(`✓ react-jsx-runtime.js`)
+
+  await build({
+    entryPoints: ["react-dom"],
+    bundle: true,
+    format: "esm",
+    outfile: join(OUT_DIR, "react-dom.js"),
+    external: ["react", "react/*"],
+    target: "es2022",
+    platform: "browser",
+    define: { "process.env.NODE_ENV": '"production"' },
+    minify: false,
+  })
+
+  patchRequireReact(join(OUT_DIR, "react-dom.js"))
+  addNamedReexports(join(OUT_DIR, "react-dom.js"), "react-dom")
+  console.log(`✓ react-dom.js`)
+
+  await build({
+    entryPoints: ["react-dom/client"],
+    bundle: true,
+    format: "esm",
+    outfile: join(OUT_DIR, "react-dom-client.js"),
+    external: ["react", "react/*"],
+    target: "es2022",
+    platform: "browser",
+    define: { "process.env.NODE_ENV": '"production"' },
+    minify: false,
+  })
+
+  patchRequireReact(join(OUT_DIR, "react-dom-client.js"))
+  addNamedReexports(join(OUT_DIR, "react-dom-client.js"), "react-dom/client")
+  console.log(`✓ react-dom-client.js`)
+
+  await build({
+    entryPoints: ["clsx"],
+    bundle: true,
+    format: "esm",
+    outfile: join(OUT_DIR, "clsx.js"),
+    target: "es2022",
+    minify: false,
+  })
+
+  console.log(`✓ clsx.js`)
+
+  await build({
+    entryPoints: ["tailwind-merge"],
+    bundle: true,
+    format: "esm",
+    outfile: join(OUT_DIR, "tailwind-merge.js"),
+    target: "es2022",
+    minify: false,
+  })
+
+  console.log(`✓ tailwind-merge.js`)
+
+  await build({
+    entryPoints: ["class-variance-authority"],
+    bundle: true,
+    format: "esm",
+    outfile: join(OUT_DIR, "cva.js"),
+    external: ["clsx"],
+    target: "es2022",
+    minify: false,
+  })
+
+  console.log(`✓ cva.js`)
+
+  writeFileSync(
+    join(OUT_DIR, "use-sync-external-store-shim.js"),
+    'export { useSyncExternalStore } from "react";\n',
+  )
+
+  writeFileSync(
+    join(OUT_DIR, "use-sync-external-store-with-selector.js"),
+    [
+      'import { useSyncExternalStore, useRef, useMemo } from "react";',
+      "export function useSyncExternalStoreWithSelector(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {",
+      "  const getSelection = () => {",
+      "    const nextSnapshot = getSnapshot();",
+      "    return selector(nextSnapshot);",
+      "  };",
+      "  const getServerSelection = getServerSnapshot ? () => selector(getServerSnapshot()) : undefined;",
+      "  let prevSelection = useRef(undefined);",
+      "  const memoizedGetSelection = () => {",
+      "    const nextSelection = getSelection();",
+      "    if (prevSelection.current !== undefined && isEqual && isEqual(prevSelection.current, nextSelection)) {",
+      "      return prevSelection.current;",
+      "    }",
+      "    prevSelection.current = nextSelection;",
+      "    return nextSelection;",
+      "  };",
+      "  return useSyncExternalStore(subscribe, memoizedGetSelection, getServerSelection);",
+      "}",
+      "",
+    ].join("\n"),
+  )
+
+  console.log(`✓ use-sync-external-store shims`)
 
   await build({
     entryPoints: [join(__dirname, "..", "lib", "playground", "tailwind-worker.ts")],
