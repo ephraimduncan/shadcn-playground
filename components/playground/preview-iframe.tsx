@@ -3,6 +3,7 @@
 import { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import { generateIframeHTML } from "@/lib/playground/iframe-html";
 import type { TranspileResult } from "@/lib/playground/transpile";
+import { injectGoogleFontImports } from "@/lib/playground/google-fonts";
 
 export type PreviewStatus = "idle" | "compiling" | "ready" | "error";
 
@@ -72,11 +73,12 @@ export function PreviewIframe({
     (css: string) => {
       const iframe = iframeRef.current;
       if (!iframe?.contentWindow) return;
+      const processedCSS = injectGoogleFontImports(css);
       if (!iframeReady) {
-        pendingGlobalCSSRef.current = css;
+        pendingGlobalCSSRef.current = processedCSS;
         return;
       }
-      iframe.contentWindow.postMessage({ type: "theme-css", css }, "*");
+      iframe.contentWindow.postMessage({ type: "theme-css", css: processedCSS }, "*");
     },
     [iframeReady],
   );
@@ -182,7 +184,7 @@ export function PreviewIframe({
     <iframe
       ref={iframeRef}
       srcDoc={html}
-      sandbox="allow-scripts allow-same-origin"
+      sandbox="allow-scripts"
       className="h-full w-full border-0"
       title="Preview"
     />

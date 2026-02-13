@@ -16,7 +16,7 @@ export const DEFAULT_GLOBALS_CSS = `@import "tailwindcss";
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -130,6 +130,7 @@ export const DEFAULT_GLOBALS_CSS = `@import "tailwindcss";
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
   }
 }
 

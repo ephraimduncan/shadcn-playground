@@ -1,5 +1,6 @@
 import { importMap } from "./modules";
 import { DEFAULT_GLOBALS_CSS } from "./theme";
+import { sanitizeGlobalCSSForPreview } from "./google-fonts";
 
 export function generateIframeHTML(initialTheme: "light" | "dark"): string {
   const darkClass = initialTheme === "dark" ? ' class="dark"' : "";
@@ -13,7 +14,7 @@ export function generateIframeHTML(initialTheme: "light" | "dark"): string {
 <script type="importmap">
 ${importMapJSON}
 </script>
-<style id="__globals-css">${DEFAULT_GLOBALS_CSS}</style>
+<style id="__globals-css">${sanitizeGlobalCSSForPreview(DEFAULT_GLOBALS_CSS)}</style>
 <style id="__tailwind"></style>
 <style>
   #__error {

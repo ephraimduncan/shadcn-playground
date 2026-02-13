@@ -27,8 +27,8 @@ const themeConfig = `
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: system-ui, -apple-system, sans-serif;
-  --font-mono: ui-monospace, monospace;
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -76,6 +76,7 @@ const themeConfig = `
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
   }
 }
 `;
