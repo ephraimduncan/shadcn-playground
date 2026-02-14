@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAtom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useTheme } from "next-themes";
@@ -45,14 +45,25 @@ const playgroundGlobalCSSAtom = atomWithStorage<string>(
 export function Playground({ initialCode, initialGlobalCSS }: PlaygroundProps) {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("horizontal");
   const [persistedCode, setPersistedCode] = useAtom(playgroundCodeAtom);
-  const [persistedGlobalCSS, setPersistedGlobalCSS] =
-    useAtom(playgroundGlobalCSSAtom);
+  const [persistedGlobalCSS, setPersistedGlobalCSS] = useAtom(
+    playgroundGlobalCSSAtom,
+  );
   const [sharedCode, setSharedCode] = useState(initialCode ?? DEFAULT_TSX_CODE);
   const [sharedGlobalCSS, setSharedGlobalCSS] = useState(
     initialGlobalCSS ?? DEFAULT_GLOBALS_CSS,
   );
   const isSharedSnippet =
     initialCode !== undefined || initialGlobalCSS !== undefined;
+
+  useEffect(() => {
+    const search = window.location.search;
+    if (
+      (initialCode && search.includes("code=")) ||
+      (initialGlobalCSS && search.includes("css="))
+    ) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, [initialCode, initialGlobalCSS]);
   const code = isSharedSnippet ? sharedCode : persistedCode;
   const setCode = isSharedSnippet ? setSharedCode : setPersistedCode;
   const globalCSS = isSharedSnippet ? sharedGlobalCSS : persistedGlobalCSS;

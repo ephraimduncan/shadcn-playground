@@ -596,7 +596,7 @@ export function EditorPanel({
   onGlobalCodeChange,
   error,
   runtimeError,
-  onReset,
+  onReset = () => onCodeChange(DEFAULT_TSX_CODE),
   onGlobalReset = () => onGlobalCodeChange(DEFAULT_GLOBALS_CSS),
 }: EditorPanelProps) {
   const { resolvedTheme } = useTheme();
@@ -848,12 +848,9 @@ export function EditorPanel({
   }, [activeCode, activeFilename]);
 
   const handleReset = useCallback(() => {
-    if (isComponentTab) {
-      onReset?.();
-    } else {
-      onGlobalReset();
-    }
-  }, [isComponentTab, onReset, onGlobalReset]);
+    onReset();
+    onGlobalReset();
+  }, [onReset, onGlobalReset]);
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -906,12 +903,12 @@ export function EditorPanel({
                 variant="ghost"
                 size="icon-sm"
                 onClick={handleReset}
-                aria-label={`Reset ${activeFilename}`}
+                aria-label="Reset component.tsx and globals.css"
               >
                 <IconRotate className="size-3.5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{`Reset ${activeFilename}`}</TooltipContent>
+            <TooltipContent>Reset both files</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>

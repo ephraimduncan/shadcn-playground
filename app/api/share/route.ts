@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { customAlphabet } from "nanoid";
 import { getDb } from "@/lib/db";
+import { ensureSnippetsGlobalCssColumn } from "@/lib/db/snippets";
 import { snippets } from "@/lib/db/schema";
 
 const nanoid = customAlphabet(
@@ -35,6 +36,8 @@ export async function POST(request: Request) {
   }
 
   const id = nanoid();
+
+  await ensureSnippetsGlobalCssColumn();
 
   await getDb().insert(snippets).values({
     id,
