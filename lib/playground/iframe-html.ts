@@ -166,8 +166,9 @@ window.addEventListener("message", async (e) => {
       const mod = await import(blobUrl);
       if (prevBlobUrl) URL.revokeObjectURL(prevBlobUrl);
       prevBlobUrl = blobUrl;
-      const Comp = mod.default || Object.values(mod).find(v => typeof v === "function");
-      if (typeof Comp !== "function") {
+      const isComponent = (v) => typeof v === "function" || (v != null && typeof v === "object" && typeof v.$$typeof === "symbol");
+      const Comp = mod.default || Object.values(mod).find(isComponent);
+      if (!isComponent(Comp)) {
         latestComp = null;
         forceUpdateRef.current?.();
         window.parent.postMessage({ type: "render-complete" }, "*");
