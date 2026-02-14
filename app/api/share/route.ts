@@ -43,6 +43,7 @@ export async function POST(request: Request) {
     id,
     code,
     globalCss,
+    source: "share",
   });
 
   return NextResponse.json({ id }, { status: 201 });

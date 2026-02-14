@@ -59,7 +59,8 @@ export function Playground({ initialCode, initialGlobalCSS }: PlaygroundProps) {
     const search = window.location.search;
     if (
       (initialCode && search.includes("code=")) ||
-      (initialGlobalCSS && search.includes("css="))
+      (initialGlobalCSS && search.includes("css=")) ||
+      search.includes("open=")
     ) {
       window.history.replaceState(null, "", window.location.pathname);
     }

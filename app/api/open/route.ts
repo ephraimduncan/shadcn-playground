@@ -1,4 +1,13 @@
 import { NextResponse } from "next/server";
+import { customAlphabet } from "nanoid";
+import { getDb } from "@/lib/db";
+import { snippets } from "@/lib/db/schema";
+import { ensureSnippetsGlobalCssColumn } from "@/lib/db/snippets";
+
+const nanoid = customAlphabet(
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+  10,
+);
 
 const MAX_CODE_SIZE = 100 * 1024;
 const FETCH_TIMEOUT_MS = 8000;
@@ -360,7 +369,8 @@ export async function GET(request: Request) {
     );
   }
 
-  const redirectParams = new URLSearchParams();
+  let finalCode: string | undefined;
+  let finalCss: string | undefined;
 
   if (hasFiles) {
     const selectedFile = pickBestPlayableFile(payload as RegistryItem);
@@ -390,7 +400,7 @@ export async function GET(request: Request) {
         );
       }
 
-      redirectParams.set("code", Buffer.from(code).toString("base64url"));
+      finalCode = code;
     }
   }
 
@@ -407,10 +417,19 @@ export async function GET(request: Request) {
       );
     }
 
-    redirectParams.set("css", Buffer.from(css).toString("base64url"));
+    finalCss = css;
   }
 
-  return NextResponse.redirect(
-    new URL(`/?${redirectParams.toString()}`, request.url),
-  );
+  await ensureSnippetsGlobalCssColumn();
+
+  const id = nanoid();
+  const db = getDb();
+  await db.insert(snippets).values({
+    id,
+    code: finalCode ?? "",
+    globalCss: finalCss,
+    source: "open",
+  });
+
+  return NextResponse.redirect(new URL(`/?open=${id}`, request.url));
 }
