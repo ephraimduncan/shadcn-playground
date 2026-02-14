@@ -6,6 +6,7 @@ import type { TranspileResult } from "@/lib/playground/transpile";
 import { injectGoogleFontImports } from "@/lib/playground/google-fonts";
 
 export type PreviewStatus = "idle" | "compiling" | "ready" | "error";
+export type PreviewViewport = "desktop" | "tablet" | "mobile";
 
 export type ConsoleEntry = {
   id: string;
@@ -15,6 +16,7 @@ export type ConsoleEntry = {
 };
 
 interface PreviewIframeProps {
+  viewport: PreviewViewport;
   compilationResult: TranspileResult | null;
   tailwindCSS: string | null;
   globalCSS: string;
@@ -25,6 +27,7 @@ interface PreviewIframeProps {
 }
 
 export function PreviewIframe({
+  viewport,
   compilationResult,
   tailwindCSS,
   globalCSS,
@@ -172,6 +175,15 @@ export function PreviewIframe({
     if (!iframe?.contentWindow || !iframeReady) return;
     iframe.contentWindow.postMessage({ type: "theme", value: theme }, "*");
   }, [theme, iframeReady]);
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe?.contentWindow || !iframeReady) return;
+    iframe.contentWindow.postMessage(
+      { type: "viewport", value: viewport },
+      "*",
+    );
+  }, [viewport, iframeReady]);
 
   if (!html) return null;
 
