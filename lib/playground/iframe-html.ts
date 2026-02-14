@@ -63,6 +63,21 @@ ${preloadTags}
     white-space: pre-wrap;
     word-break: break-word;
   }
+  html[data-preview-viewport="mobile"] #root > div.grid.grid-cols-2,
+  html[data-preview-viewport="mobile"] #root > div > div.grid.grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html[data-preview-viewport="mobile"] #root > .h-screen {
+    height: auto !important;
+    min-height: 100dvh;
+    box-sizing: border-box;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 16px;
+  }
+  html[data-preview-viewport="mobile"] #root > .h-screen > .grid {
+    width: 100%;
+  }
 </style>
 </head>
 <body style="margin:0">
@@ -76,6 +91,7 @@ import { Tooltip as RadixTooltip } from "radix-ui";
 const TooltipProvider = RadixTooltip.Provider || RadixTooltip.TooltipProvider;
 const root = createRoot(document.getElementById("root"));
 let prevBlobUrl = null;
+document.documentElement.dataset.previewViewport = "desktop";
 
 const _origConsole = { log: console.log, warn: console.warn, error: console.error, info: console.info };
 ['log', 'warn', 'error', 'info'].forEach(method => {
@@ -200,6 +216,10 @@ window.addEventListener("message", async (e) => {
 
   if (e.data.type === "theme") {
     document.documentElement.classList.toggle("dark", e.data.value === "dark");
+  }
+
+  if (e.data.type === "viewport") {
+    document.documentElement.dataset.previewViewport = e.data.value || "desktop";
   }
 });
 

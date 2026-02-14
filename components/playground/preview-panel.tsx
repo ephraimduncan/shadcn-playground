@@ -84,8 +84,8 @@ export function PreviewPanel({
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [refreshKey, setRefreshKey] = useState(0);
   const [consoleOpen, setConsoleOpen] = useState(false);
-  const [availableSize, setAvailableSize] = useState({ width: 0, height: 0 });
   const [status, setStatus] = useState<PreviewStatus>("idle");
+  const [availableSize, setAvailableSize] = useState({ width: 0, height: 0 });
 
   const handleStatusChange = useCallback(
     (nextStatus: PreviewStatus) => {
@@ -95,6 +95,7 @@ export function PreviewPanel({
     [onClearConsole],
   );
   const activeViewportConfig = viewportConfigs[viewport];
+  const shouldScaleToFit = viewport === "tablet";
   const viewportContainerRef = useRef<HTMLDivElement | null>(null);
 
   const handleRefresh = useCallback(() => {
@@ -124,15 +125,25 @@ export function PreviewPanel({
   }, []);
 
   const frameScale = useMemo(() => {
+    if (!shouldScaleToFit) return 1;
     if (!activeViewportConfig.width || !activeViewportConfig.height) return 1;
     if (!availableSize.width || !availableSize.height) return 1;
 
+    const edgeAllowance = 8;
+    const availableWidth = Math.max(availableSize.width - edgeAllowance, 0);
+    const availableHeight = Math.max(availableSize.height - edgeAllowance, 0);
+
     return Math.min(
-      availableSize.width / activeViewportConfig.width,
-      availableSize.height / activeViewportConfig.height,
+      availableWidth / activeViewportConfig.width,
+      availableHeight / activeViewportConfig.height,
       1,
     );
-  }, [activeViewportConfig, availableSize]);
+  }, [
+    shouldScaleToFit,
+    activeViewportConfig.width,
+    activeViewportConfig.height,
+    availableSize,
+  ]);
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -223,8 +234,13 @@ export function PreviewPanel({
           <div
             ref={viewportContainerRef}
             className={cn(
-              "flex h-full w-full items-center justify-center",
-              activeViewportConfig.showBoundary && "p-4",
+              "flex h-full w-full justify-center",
+              viewport === "mobile"
+                ? "items-start overflow-auto p-4"
+                : "items-center overflow-hidden",
+              activeViewportConfig.showBoundary &&
+                viewport !== "mobile" &&
+                "p-4",
             )}
           >
             <div
@@ -236,7 +252,9 @@ export function PreviewPanel({
                 height: activeViewportConfig.height
                   ? `${activeViewportConfig.height}px`
                   : "100%",
-                transform: `scale(${frameScale})`,
+                transform: shouldScaleToFit
+                  ? `scale(${frameScale})`
+                  : undefined,
               }}
             >
               <div
@@ -253,6 +271,7 @@ export function PreviewPanel({
               >
                 <PreviewIframe
                   key={refreshKey}
+                  viewport={viewport}
                   compilationResult={compilationResult}
                   tailwindCSS={tailwindCSS}
                   globalCSS={globalCSS}
