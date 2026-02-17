@@ -133,36 +133,4 @@ export const DEFAULT_GLOBALS_CSS = `@import "tailwindcss";
     font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
   }
 }
-
-.jsx-text {
-  color: #3b3b3b !important;
-}
-.jsx-tag-angle-bracket {
-  color: #22863a !important;
-}
-.jsx-tag-name {
-  color: #d1242f !important;
-}
-.jsx-tag-attribute-key {
-  color: #6f42c1 !important;
-}
-.jsx-expression-braces {
-  color: #6f42c1 !important;
-}
-
-.dark .jsx-text {
-  color: #fbfbfb !important;
-}
-.dark .jsx-tag-angle-bracket {
-  color: #79797f !important;
-}
-.dark .jsx-tag-name {
-  color: #ff6762 !important;
-}
-.dark .jsx-tag-attribute-key {
-  color: #9d6afb !important;
-}
-.dark .jsx-expression-braces {
-  color: #9d6afb !important;
-}
 `;
