@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npx agentation-mcp doctor:*)",
-      "Bash(bun remove:*)"
+      "Bash(bun remove:*)",
+      "Bash(node:*)",
+      "Bash(npx drizzle-kit push:*)"
     ]
   }
 }

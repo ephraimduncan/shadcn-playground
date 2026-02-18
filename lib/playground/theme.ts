@@ -132,6 +132,4 @@ export const DEFAULT_GLOBALS_CSS = `@import "tailwindcss";
     @apply bg-background text-foreground;
     font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
   }
-}
-
-`;
+}`;

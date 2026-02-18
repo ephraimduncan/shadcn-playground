@@ -53,3 +53,5 @@ next-env.d.ts
 .agents
 scripts
 !scripts/build-playground-modules.ts
+# Nightshift plan artifacts (keep out of version control)
+.nightshift-plan
