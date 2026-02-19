@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ShadcnExamplesIndex } from "@/lib/playground/shadcn-examples-index";
 import { validateShadcnExamplesIndex } from "@/lib/playground/shadcn-examples";
 
@@ -15,12 +15,8 @@ export function useShadcnExamples(): UseShadcnExamplesResult {
   const [data, setData] = useState<ShadcnExamplesIndex | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const requestIdRef = useRef(0);
 
-  const load = useCallback(async () => {
-    const requestId = requestIdRef.current + 1;
-    requestIdRef.current = requestId;
-
+  const load = useCallback(async (ignore?: { current: boolean }) => {
     setIsLoading(true);
     setError(null);
 
@@ -40,34 +36,29 @@ export function useShadcnExamples(): UseShadcnExamplesResult {
         throw new Error(validation.error);
       }
 
-      if (requestIdRef.current === requestId) {
-        setData(validation.data);
-      }
+      if (ignore?.current) return;
+      setData(validation.data);
     } catch (err) {
-      if (requestIdRef.current === requestId) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Could not load shadcn examples.";
-        setError(message);
-        setData(null);
-      }
+      if (ignore?.current) return;
+      const message =
+        err instanceof Error ? err.message : "Could not load shadcn examples.";
+      setError(message);
+      setData(null);
     } finally {
-      if (requestIdRef.current === requestId) {
+      if (!ignore?.current) {
         setIsLoading(false);
       }
     }
   }, []);
 
-  const refetch = useCallback(() => {
-    void load();
-  }, [load]);
+  const refetch = load;
 
   useEffect(() => {
-    void load();
+    const ignore = { current: false };
+    void load(ignore);
 
     return () => {
-      requestIdRef.current += 1;
+      ignore.current = true;
     };
   }, [load]);
 

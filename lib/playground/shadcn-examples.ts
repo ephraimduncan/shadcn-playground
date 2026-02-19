@@ -55,18 +55,6 @@ export function validateShadcnExamplesIndex(
     };
   }
 
-  const data: ShadcnExamplesIndex = {
-    components: input.components.map((component) => ({
-      id: component.id,
-      label: component.label,
-      examples: component.examples.map((example) => ({
-        id: example.id,
-        label: example.label,
-        sourcePath: example.sourcePath,
-        code: example.code,
-      })),
-    })),
-  };
-
-  return { success: true, data };
+  const components = input.components as ShadcnComponentExamples[];
+  return { success: true, data: { components } };
 }

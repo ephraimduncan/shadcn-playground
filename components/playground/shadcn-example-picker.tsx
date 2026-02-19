@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { ShadcnExample } from "@/lib/playground/shadcn-examples-index";
 import { useShadcnExamples } from "@/hooks/use-shadcn-examples";
-import { shouldConfirmExampleReplace } from "@/lib/playground/example-insert";
 
 interface ShadcnExamplePickerProps {
   code: string;
@@ -38,7 +37,6 @@ export function ShadcnExamplePicker({
   onReplaceCode,
 }: ShadcnExamplePickerProps) {
   const { data, isLoading, error, refetch } = useShadcnExamples();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [selectedExampleId, setSelectedExampleId] = useState<string>("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingExample, setPendingExample] = useState<ShadcnExample | null>(
@@ -56,7 +54,6 @@ export function ShadcnExamplePicker({
         return {
           componentLabel: component.label,
           exampleLabel: match.label,
-          example: match,
         };
       }
     }
@@ -71,14 +68,12 @@ export function ShadcnExamplePicker({
   };
 
   const handleExampleClick = (example: ShadcnExample) => {
-    setMenuOpen(false);
-
     if (code === example.code) {
       toast.info("That example is already loaded.");
       return;
     }
 
-    if (shouldConfirmExampleReplace(code, example.code)) {
+    if (code.trim().length > 0) {
       setPendingExample(example);
       setConfirmOpen(true);
       return;
@@ -114,7 +109,7 @@ export function ShadcnExamplePicker({
 
   return (
     <>
-      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm">
             <span className="truncate">

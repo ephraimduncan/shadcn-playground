@@ -111,8 +111,6 @@ async function buildBundles() {
       "react/*",
       "react-dom",
       "react-dom/*",
-      // Keep these shims external. Their npm package only ships CJS entrypoints,
-      // which otherwise emit dynamic require() in browser ESM output.
       "use-sync-external-store",
       "use-sync-external-store/*",
     ],
@@ -134,8 +132,6 @@ async function buildBundles() {
       "react/*",
       "react-dom",
       "react-dom/*",
-      // Keep these shims external. Their npm package only ships CJS entrypoints,
-      // which otherwise emit dynamic require() in browser ESM output.
       "use-sync-external-store",
       "use-sync-external-store/*",
     ],
