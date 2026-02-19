@@ -41,6 +41,11 @@ test("buildShadcnExamplesIndex groups and sorts examples", () => {
       code: "export function InputRtl() {}",
     },
     {
+      fileName: "calendar-demo.tsx",
+      sourcePath: "apps/v4/examples/base/calendar-demo.tsx",
+      code: 'export function CalendarDemo() { return <div className="rtl:rotate-180" /> }',
+    },
+    {
       fileName: "not-real-component-demo.tsx",
       sourcePath: "apps/v4/examples/base/not-real-component-demo.tsx",
       code: "export function Unknown() {}",

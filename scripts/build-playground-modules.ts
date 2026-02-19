@@ -42,6 +42,8 @@ const EXTERNALS = [
   "vaul",
   "react-resizable-panels",
   "next-themes",
+  "jotai",
+  "jotai/*",
   "next/link",
   "next/image",
   "@base-ui/react",

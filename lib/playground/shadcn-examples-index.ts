@@ -137,7 +137,10 @@ export function buildShadcnExamplesIndex(files: RawExampleFile[]): {
 
   for (const file of files) {
     const baseName = file.fileName.replace(/\.tsx$/, "");
-    if (baseName.endsWith("-rtl")) {
+    const hasRtlInName = /(^|-)rtl($|-)/i.test(baseName);
+    const hasRtlInCode = /\brtl\b/i.test(file.code);
+
+    if (hasRtlInName || hasRtlInCode) {
       continue;
     }
 
