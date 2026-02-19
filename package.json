@@ -6,8 +6,11 @@
     "dev": "next dev",
     "build": "bun run build:playground && next build",
     "build:playground": "bun scripts/build-playground-modules.ts",
+    "sync:shadcn-examples": "bun scripts/sync-shadcn-examples.ts",
     "start": "next start",
     "lint": "eslint",
+    "test": "bun test ./tests",
+    "typecheck": "tsc --noEmit",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {

@@ -37,7 +37,8 @@ yarn-error.log*
 local.db
 
 # generated playground build artifacts
-/public/playground
+/public/playground/*
+!/public/playground/shadcn-examples.json
 
 # vercel
 .vercel
@@ -53,5 +54,6 @@ next-env.d.ts
 .agents
 scripts
 !scripts/build-playground-modules.ts
+!scripts/sync-shadcn-examples.ts
 # Nightshift plan artifacts (keep out of version control)
 .nightshift-plan

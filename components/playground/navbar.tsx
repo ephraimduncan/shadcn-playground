@@ -19,6 +19,7 @@ import {
   IconBrandGithub,
   IconLoader2,
 } from "@tabler/icons-react";
+import { ShadcnExamplePicker } from "@/components/playground/shadcn-example-picker";
 
 export type LayoutMode = "horizontal" | "preview-only";
 
@@ -27,9 +28,16 @@ interface NavbarProps {
   onLayoutModeChange: (mode: LayoutMode) => void;
   code: string;
   globalCode: string;
+  onReplaceCode: (nextCode: string) => void;
 }
 
-export function Navbar({ layoutMode, onLayoutModeChange, code, globalCode }: NavbarProps) {
+export function Navbar({
+  layoutMode,
+  onLayoutModeChange,
+  code,
+  globalCode,
+  onReplaceCode,
+}: NavbarProps) {
   const { theme, setTheme } = useTheme();
   const [isSharing, setIsSharing] = useState(false);
 
@@ -70,6 +78,7 @@ export function Navbar({ layoutMode, onLayoutModeChange, code, globalCode }: Nav
             viewBox="0 0 256 256"
             className="size-5"
           >
+            <title>Shadcn Play</title>
             <rect width="256" height="256" fill="none" />
             <line
               x1="208"
@@ -98,6 +107,8 @@ export function Navbar({ layoutMode, onLayoutModeChange, code, globalCode }: Nav
             shadcn/play
           </span>
         </div>
+        <Separator orientation="vertical" className="mx-1 h-6 self-center" />
+        <ShadcnExamplePicker code={code} onReplaceCode={onReplaceCode} />
       </div>
 
       <div className="flex items-center gap-1">

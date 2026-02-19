@@ -87,6 +87,13 @@ export function Playground({ initialCode, initialGlobalCSS }: PlaygroundProps) {
       : null;
   const [runtimeError, setRuntimeError] = useState("");
 
+  const handleReplaceCode = useCallback(
+    (nextCode: string) => {
+      setCode(nextCode);
+    },
+    [setCode],
+  );
+
   const [consoleLogs, setConsoleLogs] = useState<ConsoleEntry[]>([]);
   const handleConsoleMessage = useCallback((entry: ConsoleEntry) => {
     setConsoleLogs((prev) => {
@@ -103,6 +110,7 @@ export function Playground({ initialCode, initialGlobalCSS }: PlaygroundProps) {
         onLayoutModeChange={setLayoutMode}
         code={code}
         globalCode={globalCSS}
+        onReplaceCode={handleReplaceCode}
       />
 
       <div className="flex-1 min-h-0">

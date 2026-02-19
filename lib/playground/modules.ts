@@ -100,6 +100,7 @@ export const importMap = {
     "next-themes": `${CDN}/next-themes@0.4.6${reactExternal}`,
     "@base-ui/react": "/playground/modules/base-ui.js",
     "next/link": "/playground/modules/next-link.js",
+    "next/image": "/playground/modules/next-image.js",
     "@/lib/utils": "/playground/modules/utils.js",
     ...uiImportEntries,
   },
