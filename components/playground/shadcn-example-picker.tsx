@@ -14,16 +14,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmReplaceDialog } from "@/components/playground/confirm-replace-dialog";
 import type { ShadcnExample } from "@/lib/playground/shadcn-examples-index";
 import { useShadcnExamples } from "@/hooks/use-shadcn-examples";
 
@@ -146,33 +137,18 @@ export function ShadcnExamplePicker({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Replace current component.tsx?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Your current code will be replaced with the selected shadcn
-              example.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPendingExample(null)}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (pendingExample) {
-                  applyExample(pendingExample);
-                }
-                setPendingExample(null);
-                setConfirmOpen(false);
-              }}
-            >
-              Replace
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmReplaceDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Replace current component.tsx?"
+        description="Your current code will be replaced with the selected shadcn example."
+        onConfirm={() => {
+          if (pendingExample) applyExample(pendingExample);
+          setPendingExample(null);
+          setConfirmOpen(false);
+        }}
+        onCancel={() => setPendingExample(null)}
+      />
     </>
   );
 }
