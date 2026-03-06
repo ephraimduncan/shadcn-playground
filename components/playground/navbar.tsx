@@ -19,7 +19,16 @@ import {
   IconBrandGithub,
   IconLoader2,
 } from "@tabler/icons-react";
+import dynamic from "next/dynamic";
 import { ShadcnExamplePicker } from "@/components/playground/shadcn-example-picker";
+
+const PresetPicker = dynamic(
+  () =>
+    import("@/components/playground/preset-picker").then(
+      (m) => m.PresetPicker,
+    ),
+  { ssr: false },
+);
 
 export type LayoutMode = "horizontal" | "preview-only";
 
@@ -29,6 +38,7 @@ interface NavbarProps {
   code: string;
   globalCode: string;
   onReplaceCode: (nextCode: string) => void;
+  onReplaceGlobalCSS: (css: string) => void;
 }
 
 export function Navbar({
@@ -37,6 +47,7 @@ export function Navbar({
   code,
   globalCode,
   onReplaceCode,
+  onReplaceGlobalCSS,
 }: NavbarProps) {
   const { theme, setTheme } = useTheme();
   const [isSharing, setIsSharing] = useState(false);
@@ -109,6 +120,8 @@ export function Navbar({
         </div>
         <Separator orientation="vertical" className="mx-1 h-6 self-center" />
         <ShadcnExamplePicker code={code} onReplaceCode={onReplaceCode} />
+        <Separator orientation="vertical" className="mx-1 h-6 self-center" />
+        <PresetPicker globalCSS={globalCode} onApplyPreset={onReplaceGlobalCSS} />
       </div>
 
       <div className="flex items-center gap-1">

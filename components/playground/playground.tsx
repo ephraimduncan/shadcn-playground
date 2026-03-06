@@ -104,6 +104,7 @@ export function Playground({ initialCode, initialGlobalCSS }: PlaygroundProps) {
         code={code}
         globalCode={globalCSS}
         onReplaceCode={setCode}
+        onReplaceGlobalCSS={setGlobalCSS}
       />
 
       <div className="flex-1 min-h-0">
