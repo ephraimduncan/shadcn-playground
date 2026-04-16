@@ -111,8 +111,20 @@ export function getExampleLabel(exampleSlug: string): string {
 export function inferComponentId(fileName: string): string | null {
   const baseName = fileName.replace(/\.tsx$/, "");
 
+  if (baseName === "radio-fields") {
+    return "radio-group";
+  }
+
   if (baseName.startsWith("data-picker-")) {
     return "date-picker";
+  }
+
+  if (
+    baseName.startsWith("file-upload-") ||
+    baseName.startsWith("muted-item-") ||
+    baseName.startsWith("outline-item-")
+  ) {
+    return "item";
   }
 
   const sorted = [...CANONICAL_COMPONENT_IDS].sort(
@@ -150,10 +162,21 @@ export function buildShadcnExamplesIndex(files: RawExampleFile[]): {
       continue;
     }
 
-    const suffix =
+    let suffix =
       baseName === componentId
         ? "demo"
         : baseName.slice(componentId.length + 1) || "demo";
+
+    switch (baseName) {
+      case "radio-fields":
+        suffix = "fields";
+        break;
+      case "file-upload-list":
+      case "muted-item-group":
+      case "outline-item-group":
+        suffix = baseName;
+        break;
+    }
 
     const example: ShadcnExample = {
       id: `${componentId}-${suffix}`,
@@ -188,7 +211,9 @@ export function buildShadcnExamplesIndex(files: RawExampleFile[]): {
 export function normalizeExampleImports(code: string): string {
   return code
     .replaceAll(/@\/examples\/(?:base|radix)\/ui-rtl\//g, "@/components/ui/")
-    .replaceAll(/@\/examples\/(?:base|radix)\/ui\//g, "@/components/ui/");
+    .replaceAll(/@\/examples\/(?:base|radix)\/ui\//g, "@/components/ui/")
+    .replaceAll(/@\/styles\/base-nova\/ui-rtl\//g, "@/components/ui/")
+    .replaceAll(/@\/styles\/base-nova\/ui\//g, "@/components/ui/");
 }
 
 function getExportedComponentName(code: string): string | null {

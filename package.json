@@ -4,13 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "predev": "bun run build:playground",
     "build": "bun run build:playground && next build",
-    "build:playground": "bun scripts/build-playground-modules.ts && bun scripts/build-playground-types.ts",
+    "build:playground:modules": "bun scripts/build-playground-modules.ts",
+    "build:playground:types": "bun scripts/build-playground-types.ts",
+    "build:playground": "bun run build:playground:modules && bun run build:playground:types",
     "sync:shadcn-examples": "bun scripts/sync-shadcn-examples.ts",
     "start": "next start",
     "lint": "eslint",
     "test": "bun test ./tests",
+    "pretypecheck": "bun run build:playground:types",
     "typecheck": "tsc --noEmit",
+    "postinstall": "bun run build:playground:types",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {

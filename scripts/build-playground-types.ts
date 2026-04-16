@@ -8,6 +8,7 @@ import {
 } from "fs";
 import { join, dirname, basename } from "path";
 import { fileURLToPath } from "url";
+import { importMap } from "../lib/playground/modules";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -227,13 +228,24 @@ declare module "next/image" {
 }
 `;
 
-// ── 6. Catch-all for any other import ──
+// ── 6. Explicit shims for supported bare imports ──
 
-const catchAll = `declare module "*" {
-  const mod: any;
-  export = mod;
-}
-`;
+const typedModuleSpecifiers = new Set([
+  "react",
+  "react/jsx-runtime",
+  "react-dom",
+  "react-dom/client",
+  "@tabler/icons-react",
+  "next/link",
+  "next/image",
+  "@/lib/utils",
+  ...Object.keys(uiModuleDecls),
+]);
+
+const catchAll = Object.keys(importMap.imports)
+  .filter((specifier) => !typedModuleSpecifiers.has(specifier))
+  .map((specifier) => `declare module "${specifier}";`)
+  .join("\n");
 
 // ── 7. Output index.ts with all declarations as string exports ──
 
