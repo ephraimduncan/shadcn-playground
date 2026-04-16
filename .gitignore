@@ -39,6 +39,7 @@ local.db
 # generated playground build artifacts
 /public/playground/*
 !/public/playground/shadcn-examples.json
+/.generated/
 
 # vercel
 .vercel
@@ -52,8 +53,9 @@ next-env.d.ts
 .claude
 .vscode
 .agents
-scripts
+scripts/*
 !scripts/build-playground-modules.ts
+!scripts/build-playground-types.ts
 !scripts/sync-shadcn-examples.ts
 # Nightshift plan artifacts (keep out of version control)
 .nightshift-plan

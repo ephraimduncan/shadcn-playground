@@ -15,6 +15,10 @@ test("inferComponentId resolves canonical and alias names", () => {
     inferComponentId("data-picker-with-dropdowns.tsx"),
     "date-picker",
   );
+  assert.equal(inferComponentId("file-upload-list.tsx"), "item");
+  assert.equal(inferComponentId("muted-item-group.tsx"), "item");
+  assert.equal(inferComponentId("outline-item-group.tsx"), "item");
+  assert.equal(inferComponentId("radio-fields.tsx"), "radio-group");
   assert.equal(inferComponentId("unknown-widget.tsx"), null);
 });
 
@@ -29,6 +33,16 @@ test("buildShadcnExamplesIndex groups and sorts examples", () => {
       fileName: "button-default.tsx",
       sourcePath: "apps/v4/examples/base/button-default.tsx",
       code: "export function ButtonDefault() {}",
+    },
+    {
+      fileName: "file-upload-list.tsx",
+      sourcePath: "apps/v4/examples/base/file-upload-list.tsx",
+      code: "export function FileUploadList() {}",
+    },
+    {
+      fileName: "radio-fields.tsx",
+      sourcePath: "apps/v4/examples/base/radio-fields.tsx",
+      code: "export function RadioFields() {}",
     },
     {
       fileName: "input-demo.tsx",
@@ -52,18 +66,25 @@ test("buildShadcnExamplesIndex groups and sorts examples", () => {
     },
   ]);
 
-  assert.equal(index.components.length, 2);
-  assert.equal(index.components[0].id, "button");
+  assert.equal(index.components.length, 4);
+  assert.deepEqual(
+    index.components.map((component) => component.id),
+    ["button", "input", "item", "radio-group"],
+  );
   assert.deepEqual(
     index.components[0].examples.map((example) => example.label),
     ["Default", "Outline"],
   );
-  assert.equal(index.components[1].id, "input");
   assert.deepEqual(
-    index.components[1].examples.map((example) => example.id),
-    ["input-demo"],
+    index.components[2].examples.map((example) => example.id),
+    ["item-file-upload-list"],
+  );
+  assert.deepEqual(
+    index.components[3].examples.map((example) => example.id),
+    ["radio-group-fields"],
   );
   assert.equal(warnings.length, 1);
+
 });
 
 test("validateShadcnExamplesIndex accepts valid payload and rejects malformed payload", () => {
@@ -108,15 +129,21 @@ test("normalizeExampleImports rewrites examples imports to local ui components",
     'import { Button } from "@/examples/base/ui/button"',
     'import { Input } from "@/examples/radix/ui/input"',
     'import { Dialog } from "@/examples/base/ui-rtl/dialog"',
+    'import { Item } from "@/styles/base-nova/ui/item"',
+    'import { Tooltip } from "@/styles/base-nova/ui-rtl/tooltip"',
   ].join("\n");
 
   const normalized = normalizeExampleImports(source);
   assert.equal(normalized.includes("@/examples/base/ui/"), false);
   assert.equal(normalized.includes("@/examples/radix/ui/"), false);
   assert.equal(normalized.includes("@/examples/base/ui-rtl/"), false);
+  assert.equal(normalized.includes("@/styles/base-nova/ui/"), false);
+  assert.equal(normalized.includes("@/styles/base-nova/ui-rtl/"), false);
   assert.equal(normalized.includes("@/components/ui/button"), true);
   assert.equal(normalized.includes("@/components/ui/input"), true);
   assert.equal(normalized.includes("@/components/ui/dialog"), true);
+  assert.equal(normalized.includes("@/components/ui/item"), true);
+  assert.equal(normalized.includes("@/components/ui/tooltip"), true);
 });
 
 test("wrapExampleWithCenteredPreview adds centered wrapper export", () => {

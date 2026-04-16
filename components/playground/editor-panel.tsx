@@ -27,6 +27,8 @@ import pierreDarkJson from "@/lib/playground/themes/pierre-dark.json";
 import pierreLightJson from "@/lib/playground/themes/pierre-light.json";
 import { DEFAULT_GLOBALS_CSS } from "@/lib/playground/theme";
 
+let extraLibsLoaded = false;
+
 export const DEFAULT_TSX_CODE = `import * as React from "react";
 import Link from "next/link";
 import {
@@ -833,11 +835,56 @@ export function EditorPanel({
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
       esModuleInterop: true,
+      allowSyntheticDefaultImports: true,
       allowNonTsExtensions: true,
+      moduleResolution:
+        monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+      target: monaco.languages.typescript.ScriptTarget.ESNext,
+      strict: false,
+      skipLibCheck: true,
+      resolveJsonModule: true,
     });
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: true,
+      noSemanticValidation: false,
+      noSyntaxValidation: false,
     });
+
+    if (!extraLibsLoaded) {
+      extraLibsLoaded = true;
+      void import("@/.generated/playground-types")
+        .then((types) => {
+          const defaults = monaco.languages.typescript.typescriptDefaults;
+          const add = (content: string, path: string) => {
+            if (content) defaults.addExtraLib(content, path);
+          };
+          add(types.reactIndex, "file:///node_modules/react/index.d.ts");
+          add(types.reactGlobal, "file:///node_modules/react/global.d.ts");
+          add(
+            types.reactJsxRuntime,
+            "file:///node_modules/react/jsx-runtime.d.ts",
+          );
+          add(
+            types.reactDomIndex,
+            "file:///node_modules/react-dom/index.d.ts",
+          );
+          add(
+            types.reactDomClient,
+            "file:///node_modules/react-dom/client.d.ts",
+          );
+          add(types.csstype, "file:///node_modules/csstype/index.d.ts");
+          add(
+            types.tablerIcons,
+            "file:///node_modules/@tabler/icons-react/index.d.ts",
+          );
+          add(types.nextShims, "file:///playground-shims/next.d.ts");
+          add(types.uiModulesBundle, "file:///playground-shims/ui.d.ts");
+          add(types.utilsModule, "file:///playground-shims/utils.d.ts");
+          add(types.catchAll, "file:///playground-shims/catch-all.d.ts");
+        })
+        .catch(() => {
+          extraLibsLoaded = false;
+        });
+    }
   }, []);
 
   const handleCopy = useCallback(() => {
