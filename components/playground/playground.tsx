@@ -79,7 +79,7 @@ export function Playground({ initialCode, initialGlobalCSS }: PlaygroundProps) {
     compilationResult && !("error" in compilationResult)
       ? compilationResult.candidates
       : [];
-  const tailwindCSS = useTailwindWorker(candidates);
+  const tailwindCSS = useTailwindWorker(candidates, globalCSS);
 
   const transpileError =
     compilationResult && "error" in compilationResult
@@ -112,7 +112,6 @@ export function Playground({ initialCode, initialGlobalCSS }: PlaygroundProps) {
           <PreviewPanel
             compilationResult={compilationResult}
             tailwindCSS={tailwindCSS}
-            globalCSS={globalCSS}
             transpileError={transpileError}
             theme={theme}
             runtimeError={runtimeError}
@@ -143,7 +142,6 @@ export function Playground({ initialCode, initialGlobalCSS }: PlaygroundProps) {
               <PreviewPanel
                 compilationResult={compilationResult}
                 tailwindCSS={tailwindCSS}
-                globalCSS={globalCSS}
                 transpileError={transpileError}
                 theme={theme}
                 runtimeError={runtimeError}

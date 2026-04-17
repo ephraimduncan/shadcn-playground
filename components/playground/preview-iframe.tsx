@@ -3,7 +3,6 @@
 import { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import { generateIframeHTML } from "@/lib/playground/iframe-html";
 import type { TranspileResult } from "@/lib/playground/transpile";
-import { injectGoogleFontImports } from "@/lib/playground/google-fonts";
 
 export type PreviewStatus = "idle" | "compiling" | "ready" | "error";
 export type PreviewViewport = "desktop" | "tablet" | "mobile";
@@ -19,7 +18,6 @@ interface PreviewIframeProps {
   viewport: PreviewViewport;
   compilationResult: TranspileResult | null;
   tailwindCSS: string | null;
-  globalCSS: string;
   theme: string;
   onRuntimeError: (message: string) => void;
   onStatusChange: (status: PreviewStatus) => void;
@@ -30,7 +28,6 @@ export function PreviewIframe({
   viewport,
   compilationResult,
   tailwindCSS,
-  globalCSS,
   theme,
   onRuntimeError,
   onStatusChange,
@@ -40,7 +37,6 @@ export function PreviewIframe({
   const [iframeReady, setIframeReady] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pendingCodeRef = useRef<string | null>(null);
-  const pendingGlobalCSSRef = useRef<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -72,22 +68,6 @@ export function PreviewIframe({
     [iframeReady, onStatusChange],
   );
 
-  const sendGlobalCSS = useCallback(
-    (css: string) => {
-      const iframe = iframeRef.current;
-      if (!iframe?.contentWindow) return;
-      const processedCSS = injectGoogleFontImports(css);
-      if (!iframeReady) {
-        pendingGlobalCSSRef.current = processedCSS;
-        return;
-      }
-      iframe.contentWindow.postMessage(
-        { type: "theme-css", css: processedCSS },
-        "*",
-      );
-    },
-    [iframeReady],
-  );
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
@@ -144,10 +124,6 @@ export function PreviewIframe({
     onRuntimeError,
   ]);
 
-  useEffect(() => {
-    if (!iframeReady) return;
-    sendGlobalCSS(globalCSS);
-  }, [globalCSS, sendGlobalCSS, iframeReady]);
 
   useEffect(() => {
     if (!iframeReady) return;
@@ -155,11 +131,7 @@ export function PreviewIframe({
       sendCode(pendingCodeRef.current);
       pendingCodeRef.current = null;
     }
-    if (pendingGlobalCSSRef.current !== null) {
-      sendGlobalCSS(pendingGlobalCSSRef.current);
-      pendingGlobalCSSRef.current = null;
-    }
-  }, [iframeReady, sendCode, sendGlobalCSS]);
+  }, [iframeReady, sendCode]);
 
   useEffect(() => {
     const iframe = iframeRef.current;

@@ -11,14 +11,16 @@ import utilitiesCss from "tailwindcss/utilities.css";
 import twAnimateCss from "tw-animate-css";
 // @ts-expect-error -- esbuild inlines these as text via loader config
 import shadcnTailwindCss from "shadcn/tailwind.css";
-import { TAILWIND_THEME_CONFIG } from "./tailwind-stylesheets";
 
-type CompileRequest = { type: "compile"; candidates: string[]; id: number };
+type CompileRequest = {
+  type: "compile";
+  css: string;
+  candidates: string[];
+  id: number;
+};
 type CompileResponse = { type: "css"; css: string; id: number };
 type ReadyMessage = { type: "ready" };
 type ErrorMessage = { type: "error"; message: string; id?: number };
-
-const themeConfig = TAILWIND_THEME_CONFIG;
 
 const stylesheets: Record<string, string> = {
   tailwindcss: indexCss,
@@ -30,36 +32,61 @@ const stylesheets: Record<string, string> = {
 };
 
 let compiler: Awaited<ReturnType<typeof compile>> | null = null;
-let previousClasses: string[] = [];
+let previousInputCss = "";
+let previousCandidateKey = "";
 let previousCss = "";
 
-async function init() {
-  compiler = await compile(themeConfig, {
-    base: "/",
-    loadStylesheet: async (id: string, base: string) => {
-      const content = stylesheets[id];
-      if (!content) throw new Error(`Unknown stylesheet: ${id}`);
-      return { path: id, base, content };
-    },
-    loadModule: async () => {
-      throw new Error("Loading modules is not supported in the playground");
-    },
-  });
+function resetCache() {
+  compiler = null;
+  previousInputCss = "";
+  previousCandidateKey = "";
+  previousCss = "";
+}
+
+async function loadCompiler(inputCss: string) {
+  if (compiler && inputCss === previousInputCss) {
+    return compiler;
+  }
+
+  try {
+    const nextCompiler = await compile(inputCss, {
+      base: "/",
+      loadStylesheet: async (id: string, base: string) => {
+        const content = stylesheets[id];
+        if (!content) throw new Error(`Unknown stylesheet: ${id}`);
+        return { path: id, base, content };
+      },
+      loadModule: async () => {
+        throw new Error("Loading modules is not supported in the playground");
+      },
+    });
+
+    compiler = nextCompiler;
+    previousInputCss = inputCss;
+    previousCandidateKey = "";
+    previousCss = "";
+    return nextCompiler;
+  } catch (err) {
+    resetCache();
+    throw err;
+  }
 }
 
 self.onmessage = async (e: MessageEvent<CompileRequest>) => {
   if (e.data.type !== "compile") return;
 
-  const { candidates, id } = e.data;
+  const {
+    candidates,
+    css: inputCss,
+    id,
+  } = e.data;
 
   try {
-    if (!compiler) {
-      throw new Error("Compiler not initialized");
-    }
-
+    const candidateKey = candidates.join(" ");
     if (
-      candidates.length > 0 &&
-      candidates.every((c) => previousClasses.includes(c))
+      compiler &&
+      inputCss === previousInputCss &&
+      candidateKey === previousCandidateKey
     ) {
       self.postMessage({
         type: "css",
@@ -69,8 +96,9 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
       return;
     }
 
-    const css = compiler.build(candidates);
-    previousClasses = candidates;
+    const activeCompiler = await loadCompiler(inputCss);
+    const css = activeCompiler.build(candidates);
+    previousCandidateKey = candidateKey;
     previousCss = css;
     self.postMessage({ type: "css", css, id } satisfies CompileResponse);
   } catch (err) {
@@ -79,11 +107,4 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
   }
 };
 
-init()
-  .then(() => {
-    self.postMessage({ type: "ready" } satisfies ReadyMessage);
-  })
-  .catch((err) => {
-    const message = err instanceof Error ? err.message : String(err);
-    self.postMessage({ type: "error", message } satisfies ErrorMessage);
-  });
+self.postMessage({ type: "ready" } satisfies ReadyMessage);

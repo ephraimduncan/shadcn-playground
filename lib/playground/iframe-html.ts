@@ -1,6 +1,4 @@
 import { importMap } from "./modules";
-import { DEFAULT_GLOBALS_CSS } from "./theme";
-import { sanitizeGlobalCSSForPreview } from "./google-fonts";
 
 const LOCAL_PRELOADS = [
   "/playground/modules/react.js",
@@ -35,7 +33,6 @@ export function generateIframeHTML(initialTheme: "light" | "dark"): string {
 ${importMapJSON}
 </script>
 ${preloadTags}
-<style id="__globals-css">${sanitizeGlobalCSSForPreview(DEFAULT_GLOBALS_CSS)}</style>
 <style id="__tailwind"></style>
 <style>
   #__error {
@@ -208,12 +205,6 @@ window.addEventListener("message", async (e) => {
     document.getElementById("__tailwind").textContent = e.data.css;
   }
 
-  if (e.data.type === "theme-css") {
-    const globalsCSS = document.getElementById("__globals-css");
-    if (globalsCSS) {
-      globalsCSS.textContent = e.data.css;
-    }
-  }
 
   if (e.data.type === "theme") {
     document.documentElement.classList.toggle("dark", e.data.value === "dark");

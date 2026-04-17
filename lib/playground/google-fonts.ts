@@ -1,12 +1,4 @@
 const GOOGLE_FONT_IMPORT_PREFIX = "https://fonts.googleapis.com/css2";
-const UNSAFE_IFRAME_IMPORTS = new Set([
-  "tailwindcss",
-  "tw-animate-css",
-  "shadcn/tailwind.css",
-]);
-
-const UNSAFE_IFRAME_IMPORT_RE =
-  /^\s*@import\s+(?:url\()?\s*["']?([^"'\s)]+)["']?(?:\)\s*)?;?\s*$/i;
 
 const GENERIC_FONT_FAMILIES = new Set([
   "serif",
@@ -154,18 +146,6 @@ function stripComments(css: string): string {
   return css.replace(/\/\*[\s\S]*?\*\//g, " ");
 }
 
-function sanitizeIframeImports(css: string): string {
-  return css
-    .split("\n")
-    .filter((line) => {
-      const match = line.match(UNSAFE_IFRAME_IMPORT_RE);
-      if (!match) return true;
-
-      const source = match[1].replace(/["']/g, "");
-      return !UNSAFE_IFRAME_IMPORTS.has(source);
-    })
-    .join("\n");
-}
 
 export function extractFontFamilyNamesFromCSS(css: string): string[] {
   const source = stripComments(css);
@@ -191,9 +171,8 @@ function normalizeFamilyQueryValue(name: string): string {
 }
 
 export function injectGoogleFontImports(css: string): string {
-  const sanitized = sanitizeIframeImports(css);
-  const existingImports = parseFontImports(sanitized);
-  const fontNames = extractFontFamilyNamesFromCSS(sanitized);
+  const existingImports = parseFontImports(css);
+  const fontNames = extractFontFamilyNamesFromCSS(css);
   const imports: string[] = [];
 
   for (const name of fontNames) {
@@ -207,11 +186,8 @@ export function injectGoogleFontImports(css: string): string {
     existingImports.add(normalized);
   }
 
-  if (imports.length === 0) return sanitized;
+  if (imports.length === 0) return css;
 
-  return `${imports.join("\n")}\n\n${sanitized}`;
+  return `${imports.join("\n")}\n\n${css}`;
 }
 
-export function sanitizeGlobalCSSForPreview(css: string): string {
-  return sanitizeIframeImports(css);
-}

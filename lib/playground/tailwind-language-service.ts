@@ -19,6 +19,113 @@ import type { TailwindStylesheets } from "./tailwind-stylesheets";
 
 type Monaco = typeof MonacoNS;
 
+const TAILWIND_CLASS_FUNCTIONS = ["cn", "clsx", "cva", "tw", "twMerge"] as const;
+
+
+function isEscaped(text: string, index: number) {
+  let backslashCount = 0;
+  for (let i = index - 1; i >= 0 && text[i] === "\\"; i--) {
+    backslashCount++;
+  }
+  return backslashCount % 2 === 1;
+}
+
+function findTailwindFunctionClassList(textUpToCursor: string) {
+  for (let quoteIndex = textUpToCursor.length - 1; quoteIndex >= 0; quoteIndex--) {
+    const quote = textUpToCursor[quoteIndex];
+    if (
+      (quote !== '"' && quote !== "'" && quote !== "`") ||
+      isEscaped(textUpToCursor, quoteIndex)
+    ) {
+      continue;
+    }
+
+    let parenDepth = 0;
+    for (let i = quoteIndex - 1; i >= 0; i--) {
+      const char = textUpToCursor[i];
+
+      if (
+        (char === '"' || char === "'" || char === "`") &&
+        !isEscaped(textUpToCursor, i)
+      ) {
+        const stringQuote = char;
+        i--;
+        while (i >= 0) {
+          if (
+            textUpToCursor[i] === stringQuote &&
+            !isEscaped(textUpToCursor, i)
+          ) {
+            break;
+          }
+          i--;
+        }
+        continue;
+      }
+
+      if (char === ")") {
+        parenDepth++;
+        continue;
+      }
+
+      if (char !== "(") continue;
+      if (parenDepth > 0) {
+        parenDepth--;
+        continue;
+      }
+
+      let end = i - 1;
+      while (end >= 0 && /\s/.test(textUpToCursor[end])) end--;
+
+      let start = end;
+      while (start >= 0 && /[$\w]/.test(textUpToCursor[start])) start--;
+
+      const fnName = textUpToCursor.slice(start + 1, end + 1);
+      if (
+        !TAILWIND_CLASS_FUNCTIONS.includes(
+          fnName as (typeof TAILWIND_CLASS_FUNCTIONS)[number],
+        )
+      ) {
+        continue;
+      }
+
+      return {
+        classList: textUpToCursor.slice(quoteIndex + 1),
+        startOffset: quoteIndex + 1,
+      };
+    }
+
+    return null;
+  }
+
+  return null;
+}
+
+export function detectTailwindClassListTextContext(
+  textUpToCursor: string,
+  languageId: "typescriptreact" | "css",
+): { classList: string; startOffset: number } | null {
+  if (languageId === "css") {
+    const applyMatch = /@apply\s+([^;}\r\n]*)$/.exec(textUpToCursor);
+    if (!applyMatch) return null;
+    const classList = applyMatch[1];
+    return {
+      classList,
+      startOffset: textUpToCursor.length - classList.length,
+    };
+  }
+
+  const attrRe = /(?:\s|:|\()(?:class|className|ngClass|class:list)\s*=\s*(['"`])((?:(?!\1)[\s\S])*)$/;
+  const attrMatch = attrRe.exec(textUpToCursor);
+  if (attrMatch) {
+    const classList = attrMatch[2];
+    return {
+      classList,
+      startOffset: textUpToCursor.length - classList.length,
+    };
+  }
+
+  return findTailwindFunctionClassList(textUpToCursor);
+}
 let cachedStylesheetsPromise: Promise<TailwindStylesheets> | null = null;
 
 function loadStylesheets(): Promise<TailwindStylesheets> {
@@ -84,7 +191,7 @@ async function buildState(userCss: string): Promise<State> {
     tailwindCSS: {
       ...defaults.tailwindCSS,
       classAttributes: ["class", "className", "ngClass", "class:list"],
-      classFunctions: ["cn", "clsx", "cva", "tw", "twMerge"],
+      classFunctions: [...TAILWIND_CLASS_FUNCTIONS],
     },
   };
 
@@ -287,6 +394,7 @@ export function registerTailwindProviders(
       state = next;
     } catch (err) {
       if (disposed || myGen !== generation) return;
+      state = null;
       console.error("[tailwind-ls] failed to build design system:", err);
     }
   }
@@ -349,37 +457,23 @@ export function registerTailwindProviders(
     position: MonacoNS.Position,
     languageId: "typescriptreact" | "css",
   ): { classList: string; startPos: MonacoNS.Position } | null {
-    const cursorOffset = model.getOffsetAt(position);
     const textUpToCursor = model.getValueInRange({
       startLineNumber: 1,
       startColumn: 1,
       endLineNumber: position.lineNumber,
       endColumn: position.column,
     });
-    const toStart = (classList: string) => {
-      const startOffset = cursorOffset - classList.length;
-      return model.getPositionAt(startOffset);
+    const context = detectTailwindClassListTextContext(
+      textUpToCursor,
+      languageId,
+    );
+    if (!context) return null;
+    return {
+      classList: context.classList,
+      startPos: model.getPositionAt(context.startOffset),
     };
-    if (languageId === "css") {
-      const applyMatch = /@apply\s+([^;}\r\n]*)$/.exec(textUpToCursor);
-      if (!applyMatch) return null;
-      const classList = applyMatch[1];
-      return { classList, startPos: toStart(classList) };
-    }
-    const attrRe = /(?:\s|:|\()(?:class|className|ngClass|class:list)\s*=\s*(['"`])((?:(?!\1)[\s\S])*)$/;
-    const attrMatch = attrRe.exec(textUpToCursor);
-    if (attrMatch) {
-      const classList = attrMatch[2];
-      return { classList, startPos: toStart(classList) };
-    }
-    const fnRe = /(?:^|[\s:=,;{(\[])(?:cn|clsx|cva|tw|twMerge)\s*\(\s*(?:[^)]*?,\s*)?(['"`])((?:(?!\1)[\s\S])*)$/;
-    const fnMatch = fnRe.exec(textUpToCursor);
-    if (fnMatch) {
-      const classList = fnMatch[2];
-      return { classList, startPos: toStart(classList) };
-    }
-    return null;
   }
+
 
   async function provideCompletions(
     model: MonacoNS.editor.ITextModel,
