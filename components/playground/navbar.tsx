@@ -1,19 +1,22 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import {
-  IconCircleHalf2,
+  IconSun,
+  IconMoon,
   IconShare,
+  IconCheck,
   IconLayoutColumns,
   IconLayoutSidebarRight,
   IconBrandGithub,
@@ -39,6 +42,8 @@ interface NavbarProps {
   globalCode: string;
   onReplaceCode: (nextCode: string) => void;
   onReplaceGlobalCSS: (css: string) => void;
+  onSharedUrl?: (url: string) => void;
+  registerShareTrigger?: (trigger: (() => void) | null) => void;
 }
 
 export function Navbar({
@@ -48,9 +53,12 @@ export function Navbar({
   globalCode,
   onReplaceCode,
   onReplaceGlobalCSS,
+  onSharedUrl,
+  registerShareTrigger,
 }: NavbarProps) {
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [isSharing, setIsSharing] = useState(false);
+  const [justShared, setJustShared] = useState(false);
 
   const handleShare = useCallback(async () => {
     setIsSharing(true);
@@ -71,19 +79,33 @@ export function Navbar({
       const url = `${window.location.origin}/s/${id}`;
 
       await navigator.clipboard.writeText(url);
+      onSharedUrl?.(url);
+      setJustShared(true);
       toast.success("Link copied to clipboard");
+      setTimeout(() => setJustShared(false), 2000);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to share";
       toast.error(message);
     } finally {
       setIsSharing(false);
     }
-  }, [code, globalCode]);
+  }, [code, globalCode, onSharedUrl]);
+
+  useEffect(() => {
+    registerShareTrigger?.(handleShare);
+    return () => registerShareTrigger?.(null);
+  }, [handleShare, registerShareTrigger]);
+
+  const isDark = (resolvedTheme ?? theme) === "dark";
 
   return (
     <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-background px-4">
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        <Link
+          href="/"
+          aria-label="Homepage"
+          className="flex items-center gap-2 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 256 256"
@@ -117,10 +139,12 @@ export function Navbar({
           <span className="text-base font-semibold text-foreground tracking-tight">
             shadcn/play
           </span>
-        </div>
-        <Separator orientation="vertical" className="mx-1 h-6 self-center" />
+        </Link>
+        <span
+          aria-hidden="true"
+          className="h-4 w-px bg-border/60 self-center"
+        />
         <ShadcnExamplePicker code={code} onReplaceCode={onReplaceCode} />
-        <Separator orientation="vertical" className="mx-1 h-6 self-center" />
         <PresetPicker globalCSS={globalCode} onApplyPreset={onReplaceGlobalCSS} />
       </div>
 
@@ -152,20 +176,28 @@ export function Navbar({
           </Tooltip>
         </ToggleGroup>
 
-        <Separator orientation="vertical" className="mx-1 self-stretch" />
-
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
               size="icon-sm"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              onClick={() => setTheme(isDark ? "light" : "dark")}
               aria-label="Toggle theme"
             >
-              <IconCircleHalf2 className="size-3.5 text-black dark:text-white" />
+              {isDark ? (
+                <IconSun className="size-3.5 text-foreground" />
+              ) : (
+                <IconMoon className="size-3.5 text-foreground" />
+              )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Toggle theme</TooltipContent>
+          <TooltipContent>
+            <KbdGroup>
+              Toggle theme
+              <Kbd>⌘</Kbd>
+              <Kbd>.</Kbd>
+            </KbdGroup>
+          </TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -184,22 +216,34 @@ export function Navbar({
           <TooltipContent>View on GitHub</TooltipContent>
         </Tooltip>
 
-        <Separator orientation="vertical" className="mx-1 self-stretch" />
-
-        <Button
-          variant="default"
-          size="sm"
-          onClick={handleShare}
-          disabled={isSharing}
-          className="dark:!bg-white dark:!text-black dark:hover:!bg-white/90"
-        >
-          {isSharing ? (
-            <IconLoader2 className="size-3.5 animate-spin" />
-          ) : (
-            <IconShare className="size-3.5" />
-          )}
-          {isSharing ? "Sharing…" : "Share"}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleShare}
+              disabled={isSharing}
+              className="ml-1"
+            >
+              {isSharing ? (
+                <IconLoader2 className="size-3.5 animate-spin" />
+              ) : justShared ? (
+                <IconCheck className="size-3.5" />
+              ) : (
+                <IconShare className="size-3.5" />
+              )}
+              {isSharing ? "Sharing…" : justShared ? "Copied" : "Share"}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <KbdGroup>
+              Copy share link
+              <Kbd>⌘</Kbd>
+              <Kbd>⇧</Kbd>
+              <Kbd>C</Kbd>
+            </KbdGroup>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </header>
   );

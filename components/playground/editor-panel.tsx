@@ -26,6 +26,9 @@ import {
 import pierreDarkJson from "@/lib/playground/themes/pierre-dark.json";
 import pierreLightJson from "@/lib/playground/themes/pierre-light.json";
 import { DEFAULT_GLOBALS_CSS } from "@/lib/playground/theme";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { ConfirmReplaceDialog } from "@/components/playground/confirm-replace-dialog";
+import { cn } from "@/lib/utils";
 import {
   registerTailwindProviders,
   type TailwindProviderHandle,
@@ -547,6 +550,9 @@ interface EditorPanelProps {
   runtimeError?: string;
   onReset?: () => void;
   onGlobalReset?: () => void;
+  onCursorChange?: (line: number, column: number) => void;
+  onActiveTabChange?: (tab: "component.tsx" | "globals.css") => void;
+  registerFormatTrigger?: (trigger: (() => void) | null) => void;
 }
 
 function findIdentifierInSource(
@@ -604,11 +610,15 @@ export function EditorPanel({
   runtimeError,
   onReset = () => onCodeChange(DEFAULT_TSX_CODE),
   onGlobalReset = () => onGlobalCodeChange(DEFAULT_GLOBALS_CSS),
+  onCursorChange,
+  onActiveTabChange,
+  registerFormatTrigger,
 }: EditorPanelProps) {
   const { resolvedTheme } = useTheme();
   const [copied, setCopied] = useState(false);
   const [isFormatting, setIsFormatting] = useState(false);
   const [activeTab, setActiveTab] = useState<EditorTab>("component.tsx");
+  const [resetOpen, setResetOpen] = useState(false);
   const editorInstanceRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
   const jsxHighlightDisposeRef = useRef<(() => void) | null>(null);
@@ -623,6 +633,10 @@ export function EditorPanel({
     formattedCode: string;
   } | null>(null);
   const [isEditorReady, setIsEditorReady] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isComponentTab = activeTab === "component.tsx";
   const activeCode = isComponentTab ? code : globalCode;
@@ -920,35 +934,71 @@ export function EditorPanel({
   }, [activeCode, activeFilename]);
 
   const handleReset = useCallback(() => {
+    setResetOpen(true);
+  }, []);
+
+  const confirmReset = useCallback(() => {
     onReset();
     onGlobalReset();
+    setResetOpen(false);
+    toast.success("Reset to defaults");
   }, [onReset, onGlobalReset]);
+
+  useEffect(() => {
+    registerFormatTrigger?.(() => handleFormatRef.current());
+    return () => registerFormatTrigger?.(null);
+  }, [registerFormatTrigger]);
+
+  useEffect(() => {
+    onActiveTabChange?.(activeTab);
+  }, [activeTab, onActiveTabChange]);
+
+  const isCodeDirty = mounted && code !== DEFAULT_TSX_CODE;
+  const isGlobalDirty = mounted && globalCode !== DEFAULT_GLOBALS_CSS;
 
   return (
     <div className="flex h-full flex-col bg-background">
       <div className="flex h-10 shrink-0 items-center justify-between border-b border-border pr-3">
-        <div className="flex h-full">
+        <div role="tablist" className="flex h-full">
           <button
             type="button"
+            role="tab"
             onClick={() => setActiveTab("component.tsx")}
-            className={`inline-flex h-full items-center px-3 text-xs font-medium leading-none transition-colors ${
+            aria-selected={isComponentTab}
+            className={cn(
+              "inline-flex h-full items-center gap-1.5 px-3 text-xs font-medium leading-none transition-colors border-b-2",
               isComponentTab
-                ? "bg-background text-foreground border-b-2 border-primary font-semibold"
-                : "bg-background/80 text-muted-foreground hover:bg-background border-b-2 border-transparent"
-            }`}
+                ? "bg-background text-foreground border-primary"
+                : "bg-background/80 text-muted-foreground hover:bg-background border-transparent",
+            )}
           >
             component.tsx
+            {isCodeDirty && (
+              <span
+                aria-label="Modified"
+                className="size-1.5 rounded-full bg-foreground/60"
+              />
+            )}
           </button>
           <button
             type="button"
+            role="tab"
             onClick={() => setActiveTab("globals.css")}
-            className={`inline-flex h-full items-center px-3 text-xs font-medium leading-none transition-colors ${
-              isComponentTab
-                ? "bg-background/80 text-muted-foreground hover:bg-background border-b-2 border-transparent"
-                : "bg-background text-foreground border-b-2 border-primary font-semibold"
-            }`}
+            aria-selected={!isComponentTab}
+            className={cn(
+              "inline-flex h-full items-center gap-1.5 px-3 text-xs font-medium leading-none transition-colors border-b-2",
+              !isComponentTab
+                ? "bg-background text-foreground border-primary"
+                : "bg-background/80 text-muted-foreground hover:bg-background border-transparent",
+            )}
           >
             globals.css
+            {isGlobalDirty && (
+              <span
+                aria-label="Modified"
+                className="size-1.5 rounded-full bg-foreground/60"
+              />
+            )}
           </button>
         </div>
         <div className="flex items-center gap-1">
@@ -998,10 +1048,24 @@ export function EditorPanel({
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Format</TooltipContent>
+            <TooltipContent>
+              <KbdGroup>
+                Format
+                <Kbd>⌘</Kbd>
+                <Kbd>S</Kbd>
+              </KbdGroup>
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>
+      <ConfirmReplaceDialog
+        open={resetOpen}
+        onOpenChange={setResetOpen}
+        title="Reset to defaults?"
+        description="This will replace component.tsx and globals.css with the default code. You can't undo this after closing the tab."
+        onConfirm={confirmReset}
+        onCancel={() => setResetOpen(false)}
+      />
 
       <div className="flex-1 min-h-0">
         <Editor
@@ -1030,6 +1094,14 @@ export function EditorPanel({
                 handleFormatRef.current();
               },
             });
+
+            instance.onDidChangeCursorPosition((e) => {
+              onCursorChange?.(e.position.lineNumber, e.position.column);
+            });
+            const initial = instance.getPosition();
+            if (initial) {
+              onCursorChange?.(initial.lineNumber, initial.column);
+            }
 
             if ("fonts" in document) {
               void document.fonts

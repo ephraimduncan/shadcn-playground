@@ -89,7 +89,11 @@ export function PresetPicker({ globalCSS, onApplyPreset }: PresetPickerProps) {
     <>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            data-slot="preset-picker-trigger"
+          >
             <IconPalette className="size-3.5" />
             Apply preset
           </Button>

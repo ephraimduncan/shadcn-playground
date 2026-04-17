@@ -102,7 +102,11 @@ export function ShadcnExamplePicker({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            data-slot="example-picker-trigger"
+          >
             <span className="truncate">
               {selectedSelection
                 ? `${selectedSelection.componentLabel} - ${selectedSelection.exampleLabel}`
